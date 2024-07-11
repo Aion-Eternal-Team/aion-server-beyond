@@ -26,6 +26,8 @@ public interface IStatFunction extends Comparable<IStatFunction> {
 
 	boolean hasConditions();
 
-	boolean hasNullOwner();
-
+	@Override
+	default int compareTo(IStatFunction o) {
+		return getPriority() - o.getPriority();
+	}
 }

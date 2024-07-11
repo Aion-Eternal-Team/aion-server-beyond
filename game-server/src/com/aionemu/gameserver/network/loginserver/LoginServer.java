@@ -41,15 +41,8 @@ public class LoginServer {
 
 	private static final Logger log = LoggerFactory.getLogger(LoginServer.class);
 
-	/**
-	 * Map<accountId,Connection> for waiting request. This request is send to LoginServer and GameServer is waiting for response.
-	 */
-	private Map<Integer, AionConnection> loginRequests = new ConcurrentHashMap<>();
-
-	/**
-	 * Map<accountId,Connection> for all logged in accounts.
-	 */
-	private Map<Integer, AionConnection> loggedInAccounts = new ConcurrentHashMap<>();
+	private final Map<Integer, LoginRequest> loginRequests = new ConcurrentHashMap<>();
+	private final Map<Integer, AionConnection> loggedInAccounts = new ConcurrentHashMap<>();
 	private LoginServerConnection lsCon = null;
 	private NioServer nioServer = null;
 	private int gameServerCount = 1;
@@ -98,8 +91,8 @@ public class LoginServer {
 			lsCon.close();
 			lsCon = null;
 		}
-		for (AionConnection client : loginRequests.values())
-			client.close(/* closePacket */); // TODO! some error packet!
+		for (LoginRequest loginRequest : loginRequests.values())
+			loginRequest.connection.close();
 		loginRequests.clear();
 	}
 
@@ -119,13 +112,13 @@ public class LoginServer {
 	/**
 	 * Notify that client is disconnected - we must clear waiting request to LoginServer if any to prevent leaks. Also notify LoginServer that this
 	 * account is no longer on GameServer side.
-	 * 
-	 * @param accountId
 	 */
-	public void aionClientDisconnected(int accountId) {
-		loginRequests.remove(accountId);
-		loggedInAccounts.remove(accountId);
-		sendPacket(new SM_ACCOUNT_DISCONNECTED(accountId));
+	public void onDisconnect(AionConnection connection) {
+		loginRequests.values().removeIf(r -> r.connection == connection);
+		if (connection.getAccount() != null) {
+			loggedInAccounts.remove(connection.getAccount().getId());
+			sendPacket(new SM_ACCOUNT_DISCONNECTED(connection.getAccount().getId()));
+		}
 	}
 
 	public void setGameServerCount(int gameServerCount) {
@@ -136,18 +129,16 @@ public class LoginServer {
 		return gameServerCount;
 	}
 
+	public void registerLoginRequest(int accountId, AionConnection client, int loginOk, int playOk1, int playOk2) {
+		loginRequests.putIfAbsent(accountId, new LoginRequest(client, new SM_ACCOUNT_AUTH(accountId, loginOk, playOk1, playOk2)));
+	}
+
 	/**
 	 * Starts authentication procedure of this client - LoginServer will send response with information about account name if authentication is ok.
-	 * 
-	 * @param accountId
-	 * @param client
-	 * @param loginOk
-	 * @param playOk1
-	 * @param playOk2
 	 */
-	public void requestAuthenticationOfClient(int accountId, AionConnection client, int loginOk, int playOk1, int playOk2) {
-		if (isUp() && loginRequests.putIfAbsent(accountId, client) == null)
-			lsCon.sendPacket(new SM_ACCOUNT_AUTH(accountId, loginOk, playOk1, playOk2));
+	public void authenticateClient(AionConnection client) {
+		if (isUp())
+			loginRequests.values().stream().filter(r -> r.connection == client).findAny().ifPresent(r -> lsCon.sendPacket(r.lsAuthResponse));
 		else
 			client.close(new SM_L2AUTH_LOGIN_CHECK(false, null)); // disconnect this client since authentication will not happen
 	}
@@ -157,10 +148,11 @@ public class LoginServer {
 	 */
 	public void accountAuthenticationResponse(int accountId, String accountName, boolean result, long creationDate, AccountTime accountTime,
 		byte accessLevel, byte membership, long toll, String allowedHddSerial) {
-		AionConnection client = loginRequests.remove(accountId);
-		if (client == null)
+		LoginRequest loginRequest = loginRequests.remove(accountId);
+		if (loginRequest == null)
 			return;
 
+		AionConnection client = loginRequest.connection;
 		if (!result || !validateMacAndHddSerial(client, allowedHddSerial)) {
 			client.close(new SM_L2AUTH_LOGIN_CHECK(false, accountName)); // LS sends no accName when result is false
 			sendPacket(new SM_ACCOUNT_DISCONNECTED(accountId)); // disconnect manually from login server because account isn't attached to connection yet
@@ -181,10 +173,7 @@ public class LoginServer {
 	}
 
 	private boolean validateMacAndHddSerial(AionConnection client, String allowedHddSerial) {
-		if (client.getMacAddress() == null || client.getHddSerial() == null) {
-			log.warn(client + " did not send CM_MAC_ADDRESS during login (modified client or hack)");
-			return false;
-		} else if (!client.getMacAddress().matches("^([0-9A-F]{2}-){5}[0-9A-F]{2}$")) {
+		if (!client.getMacAddress().matches("^([0-9A-F]{2}-){5}[0-9A-F]{2}$")) {
 			log.warn(client + " sent an invalid MAC address (modified client or hack): " + client.getMacAddress());
 			return false;
 		} else if (BannedMacManager.getInstance().isBanned(client.getMacAddress())) {
@@ -214,12 +203,9 @@ public class LoginServer {
 
 	/**
 	 * Starts reconnection to LoginServer procedure. LoginServer in response will send reconnection key.
-	 * 
-	 * @param accountId
-	 * @param client
 	 */
 	public void requestAuthReconnection(int accountId, AionConnection client) {
-		if (isUp() && loggedInAccounts.containsKey(accountId) && loginRequests.putIfAbsent(accountId, client) == null)
+		if (isUp() && client.equals(loggedInAccounts.get(accountId)))
 			lsCon.sendPacket(new SM_ACCOUNT_RECONNECT_KEY(client.getAccount().getId()));
 		else
 			client.close(/* closePacket */);
@@ -228,12 +214,9 @@ public class LoginServer {
 	/**
 	 * This method is called by CM_ACCOUNT_RECONNECT_KEY LoginServer packets to give GameServer reconnection key for client that was requesting
 	 * reconnection.
-	 * 
-	 * @param accountId
-	 * @param reconnectKey
 	 */
 	public void authReconnectionResponse(int accountId, int reconnectKey) {
-		AionConnection client = loginRequests.remove(accountId);
+		AionConnection client = loggedInAccounts.get(accountId);
 		if (client == null)
 			return;
 		client.close(new SM_RECONNECT_KEY(reconnectKey));
@@ -287,4 +270,6 @@ public class LoginServer {
 
 		protected static final LoginServer instance = new LoginServer();
 	}
+
+	private record LoginRequest(AionConnection connection, SM_ACCOUNT_AUTH lsAuthResponse) {}
 }

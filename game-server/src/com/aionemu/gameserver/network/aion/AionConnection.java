@@ -242,13 +242,9 @@ public class AionConnection extends AConnection<AionServerPacket> {
 			return;
 		}
 
-		String msg = "";
-		Account account = getAccount();
-		if (account != null) {
-			msg += " " + account;
-			LoginServer.getInstance().aionClientDisconnected(account.getId());
-		}
+		LoginServer.getInstance().onDisconnect(this);
 
+		String msg = getAccount() == null ? "" : " " + getAccount();
 		Player player = getActivePlayer();
 		if (player != null) {
 			msg += " " + player + " (client crash or connection loss)";

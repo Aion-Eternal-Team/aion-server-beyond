@@ -1,8 +1,5 @@
 package com.aionemu.gameserver.model.stats.calc.functions;
 
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-
 import javax.xml.bind.annotation.*;
 
 import com.aionemu.gameserver.model.stats.calc.Stat2;
@@ -17,8 +14,6 @@ import com.aionemu.gameserver.utils.stats.CalculationType;
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "SimpleModifier")
 public class StatFunction implements IStatFunction {
-
-	private static ConcurrentHashMap<StatEnum, Boolean> nullOwnerStats = new ConcurrentHashMap<>();
 
 	@XmlAttribute(name = "name")
 	protected StatEnum stat;
@@ -36,14 +31,6 @@ public class StatFunction implements IStatFunction {
 		this.stat = stat;
 		this.value = value;
 		this.bonus = bonus;
-	}
-
-	@Override
-	public int compareTo(IStatFunction o) {
-		int result = getPriority() - o.getPriority();
-		if (result == 0)
-			return this.hashCode() - o.hashCode();
-		return result;
 	}
 
 	@Override
@@ -102,22 +89,4 @@ public class StatFunction implements IStatFunction {
 	public boolean hasConditions() {
 		return conditions != null;
 	}
-
-	@Override
-	public boolean hasNullOwner() {
-		if (nullOwnerStats.containsKey(getName()))
-			return nullOwnerStats.get(getName());
-
-		List<IStatFunction> globalStats = PlayerStatFunctions.getFunctions();
-		boolean hasNullOwner = false;
-		for (IStatFunction func : globalStats) {
-			if (func.getName() == getName()) {
-				hasNullOwner = true;
-				break;
-			}
-		}
-		nullOwnerStats.put(getName(), hasNullOwner);
-		return hasNullOwner;
-	}
-
 }

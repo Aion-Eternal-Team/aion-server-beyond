@@ -1,5 +1,7 @@
 package com.aionemu.gameserver.model.stats.calc.functions;
 
+import java.util.Objects;
+
 import com.aionemu.gameserver.model.stats.calc.Stat2;
 import com.aionemu.gameserver.model.stats.calc.StatOwner;
 import com.aionemu.gameserver.model.stats.container.StatEnum;
@@ -12,16 +14,10 @@ public class StatFunctionProxy implements IStatFunction, Comparable<IStatFunctio
 
 	private final StatOwner owner;
 	private final IStatFunction proxiedFunction;
-	private final StatEnum stat;
 
 	public StatFunctionProxy(StatOwner owner, IStatFunction statFunction) {
-		this(owner, statFunction, statFunction.getName());
-	}
-
-	public StatFunctionProxy(StatOwner owner, IStatFunction statFunction, StatEnum statEnum) {
 		this.owner = owner;
 		this.proxiedFunction = statFunction;
-		this.stat = statEnum;
 	}
 
 	public IStatFunction getProxiedFunction() {
@@ -30,10 +26,7 @@ public class StatFunctionProxy implements IStatFunction, Comparable<IStatFunctio
 
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((owner == null) ? 0 : owner.hashCode());
-		return result;
+		return Objects.hash(owner, proxiedFunction);
 	}
 
 	@Override
@@ -45,21 +38,7 @@ public class StatFunctionProxy implements IStatFunction, Comparable<IStatFunctio
 		if (getClass() != obj.getClass())
 			return false;
 		StatFunctionProxy other = (StatFunctionProxy) obj;
-		if (owner == null) {
-			if (other.owner != null)
-				return false;
-		} else if (!owner.equals(other.owner))
-			return false;
-
-		// if (other.isBonus() != this.isBonus())
-		// return false;
-		// return other.getRandomNumber() == this.getRandomNumber();
-		return true;
-	}
-
-	@Override
-	public int compareTo(IStatFunction o) {
-		return proxiedFunction.compareTo(o);
+		return Objects.equals(owner, other.owner) && proxiedFunction.equals(other.proxiedFunction);
 	}
 
 	@Override
@@ -69,7 +48,7 @@ public class StatFunctionProxy implements IStatFunction, Comparable<IStatFunctio
 
 	@Override
 	public StatEnum getName() {
-		return stat;
+		return proxiedFunction.getName();
 	}
 
 	@Override
@@ -100,11 +79,6 @@ public class StatFunctionProxy implements IStatFunction, Comparable<IStatFunctio
 	@Override
 	public boolean hasConditions() {
 		return proxiedFunction.hasConditions();
-	}
-
-	@Override
-	public boolean hasNullOwner() {
-		return proxiedFunction.hasNullOwner();
 	}
 
 	@Override

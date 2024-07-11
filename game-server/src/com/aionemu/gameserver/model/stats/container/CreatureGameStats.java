@@ -3,9 +3,8 @@ package com.aionemu.gameserver.model.stats.container;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeSet;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.apache.commons.lang3.ArrayUtils;
 
@@ -18,7 +17,6 @@ import com.aionemu.gameserver.model.items.ManaStone;
 import com.aionemu.gameserver.model.items.RandomBonusEffect;
 import com.aionemu.gameserver.model.stats.calc.*;
 import com.aionemu.gameserver.model.stats.calc.functions.IStatFunction;
-import com.aionemu.gameserver.model.stats.calc.functions.StatFunction;
 import com.aionemu.gameserver.model.stats.calc.functions.StatFunctionProxy;
 import com.aionemu.gameserver.model.templates.itemset.ItemSetTemplate;
 import com.aionemu.gameserver.model.templates.stats.StatsTemplate;
@@ -33,8 +31,7 @@ public abstract class CreatureGameStats<T extends Creature> {
 	private static final int ATTACK_MAX_COUNTER = Integer.MAX_VALUE;
 
 	protected final T owner;
-	private final Map<StatEnum, TreeSet<IStatFunction>> stats = new ConcurrentHashMap<>();
-	private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+	private final Map<StatEnum, List<IStatFunction>> stats = new ConcurrentHashMap<>();
 
 	private long lastGeoUpdate = 0;
 	private int attackCounter = 0;
@@ -71,16 +68,25 @@ public abstract class CreatureGameStats<T extends Creature> {
 		}
 	}
 
+	@SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
 	public final void addEffectOnly(StatOwner statOwner, List<? extends IStatFunction> functions) {
-			for (IStatFunction function : functions) {
-				TreeSet<IStatFunction> statFunctions = stats.computeIfAbsent(function.getName(), k -> new TreeSet<>());
-				lock.writeLock().lock();
-				try {
-					statFunctions.add(function instanceof StatFunction ? new StatFunctionProxy(statOwner, function) : function);
-				} finally {
-					lock.writeLock().unlock();
+		for (IStatFunction function : functions) {
+			IStatFunction functionToAdd = Objects.equals(statOwner, function.getOwner()) ? function : new StatFunctionProxy(statOwner, function);
+			stats.compute(functionToAdd.getName(), (k, statFunctions) -> {
+				if (statFunctions == null) {
+					statFunctions = new ArrayList<>();
+					statFunctions.add(functionToAdd);
+				} else {
+					synchronized (statFunctions) {
+						if (!statFunctions.contains(functionToAdd)) { // list.contains is plenty fast, as this list never contains many items
+							statFunctions.add(functionToAdd);
+							statFunctions.sort(null);
+						}
+					}
 				}
-			}
+				return statFunctions;
+			});
+		}
 	}
 
 	public final void addEffect(StatOwner statOwner, List<? extends IStatFunction> functions) {
@@ -88,16 +94,15 @@ public abstract class CreatureGameStats<T extends Creature> {
 		onStatsChange(statOwner instanceof Effect effect ? effect : null);
 	}
 
+	@SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
 	public final void endEffect(StatOwner statOwner) {
-		for (TreeSet<IStatFunction> functions : stats.values()) {
-			lock.writeLock().lock();
-			try {
-				functions.removeIf(statFunction -> statOwner.equals(statFunction.getOwner()));
-			} finally {
-				lock.writeLock().unlock();
+		boolean statsChanged = false;
+		for (List<IStatFunction> functions : stats.values()) {
+			synchronized (functions) {
+					statsChanged |= functions.removeIf(statFunction -> statOwner.equals(statFunction.getOwner()));
 			}
 		}
-		if (!owner.isDead())
+		if (statsChanged && !owner.isDead())
 			onStatsChange(null);
 	}
 
@@ -317,14 +322,11 @@ public abstract class CreatureGameStats<T extends Creature> {
 	 * @return All stat functions for the given stat sorted by priority
 	 */
 	public List<IStatFunction> getStatsSorted(StatEnum stat) {
-		TreeSet<IStatFunction> allStats = stats.get(stat);
-		if (allStats == null)
+		List<IStatFunction> statFunctions = stats.get(stat);
+		if (statFunctions == null)
 			return null;
-		lock.readLock().lock();
-		try {
-				return new ArrayList<>(allStats);
-		} finally {
-			lock.readLock().unlock();
+		synchronized (statFunctions) {
+				return new ArrayList<>(statFunctions);
 		}
 	}
 

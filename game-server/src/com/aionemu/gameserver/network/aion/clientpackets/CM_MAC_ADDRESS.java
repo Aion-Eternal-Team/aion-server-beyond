@@ -7,6 +7,7 @@ import java.util.Set;
 import com.aionemu.gameserver.network.aion.AionClientPacket;
 import com.aionemu.gameserver.network.aion.AionConnection;
 import com.aionemu.gameserver.network.aion.AionConnection.State;
+import com.aionemu.gameserver.network.loginserver.LoginServer;
 
 /**
  * In this packet client is sending connection and system information (IPs, MAC Address and HDD serial).
@@ -37,6 +38,7 @@ public class CM_MAC_ADDRESS extends AionClientPacket {
 		AionConnection con = getConnection();
 		con.setMacAddress(macAddress);
 		con.setHddSerial(hddSerial);
+		LoginServer.getInstance().authenticateClient(con);
 	}
 
 	private static String fixHddSerial(String hddSerial) {

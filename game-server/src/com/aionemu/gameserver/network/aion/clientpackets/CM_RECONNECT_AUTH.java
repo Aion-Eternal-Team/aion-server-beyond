@@ -25,7 +25,6 @@ public class CM_RECONNECT_AUTH extends AionClientPacket {
 	@Override
 	protected void runImpl() {
 		AionConnection client = getConnection();
-		// TODO! check if may reconnect
 		LoginServer.getInstance().requestAuthReconnection(client.getAccount().getId(), client);
 	}
 }

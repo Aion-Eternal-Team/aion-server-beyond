@@ -2135,10 +2135,10 @@
 			</spawn_map>
 		</spawns>
 	</event>
-	<event name="Scorching Heat Inventory" start="2023-08-07T00:00:00" end="2023-08-27T23:59:59">
+	<event name="Scorching Heat Inventory" start="2024-07-08T00:00:00" end="2024-07-28T23:59:59">
 		<inventory_drop item_id="186000111" startlevel="1" interval="30" count="3" />
 	</event>
-	<event name="Scorching Heat" start="2023-08-07T00:00:00" end="2023-08-27T23:59:59">
+	<event name="Scorching Heat" start="2024-07-08T00:00:00" end="2024-07-28T23:59:59">
 		<spawns>
 			<!-- Sanctum -->
 			<spawn_map map_id="110010000">
@@ -3127,7 +3127,7 @@
 			</spawn_map>
 		</spawns>
 	</event>
-	<event name="Summer Party" start="2023-08-07T00:00:00" end="2023-08-27T23:59:59">
+	<event name="Summer Party" start="2024-07-08T00:00:00" end="2024-07-28T23:59:59">
 		<quests>
 			<maintainable>80351 80352 80359 80360 80361 80368</maintainable>
 		</quests>
@@ -3311,7 +3311,7 @@
 			</spawn_map>
 		</spawns>
 	</event>
-	<event name="Block Party Part 1" start="2023-08-07T00:00:00" end="2023-08-13T23:59:59">
+	<event name="Block Party Part 1" start="2024-07-08T00:00:00" end="2024-07-14T23:59:59">
 		<quests>
 			<maintainable>80353 80356 80359 80362 80365 80368</maintainable>
 		</quests>
@@ -3340,7 +3340,7 @@
 			</spawn_map>
 		</spawns>
 	</event>
-	<event name="Block Party Part 2" start="2023-08-14T00:00:00" end="2023-08-20T23:59:59">
+	<event name="Block Party Part 2" start="2024-07-15T00:00:00" end="2024-07-21T23:59:59">
 		<quests>
 			<maintainable>80354 80357 80359 80363 80366 80368</maintainable>
 		</quests>
@@ -3369,7 +3369,7 @@
 			</spawn_map>
 		</spawns>
 	</event>
-	<event name="Block Party Part 3" start="2023-08-21T00:00:00" end="2023-08-27T23:59:59">
+	<event name="Block Party Part 3" start="2024-07-22T00:00:00" end="2024-07-28T23:59:59">
 		<quests>
 			<maintainable>80355 80358 80359 80364 80367 80368</maintainable>
 		</quests>
@@ -3398,7 +3398,7 @@
 			</spawn_map>
 		</spawns>
 	</event>
-	<event name="Block Party Part 4" start="2023-08-28T00:00:00" end="2023-09-03T23:59:59">
+	<event name="Block Party Part 4" start="2024-07-29T00:00:00" end="2024-08-04T23:59:59">
 		<quests>
 			<maintainable>80359 80368</maintainable>
 		</quests>

@@ -59,6 +59,6 @@ public class CM_L2AUTH_LOGIN_CHECK extends AionClientPacket {
 
 	@Override
 	protected void runImpl() {
-		LoginServer.getInstance().requestAuthenticationOfClient(accountId, getConnection(), loginOk, playOk1, playOk2);
+		LoginServer.getInstance().registerLoginRequest(accountId, getConnection(), loginOk, playOk1, playOk2);
 	}
 }
