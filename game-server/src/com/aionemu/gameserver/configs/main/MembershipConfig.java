@@ -28,24 +28,6 @@ public class MembershipConfig {
 	@Property(key = "gameserver.instances.cooldown", defaultValue = "10")
 	public static byte INSTANCES_COOLDOWN;
 
-	@Property(key = "gameserver.store.wh.all", defaultValue = "10")
-	public static byte STORE_WH_ALL;
-
-	@Property(key = "gameserver.store.accountwh.all", defaultValue = "10")
-	public static byte STORE_AWH_ALL;
-
-	@Property(key = "gameserver.store.legionwh.all", defaultValue = "10")
-	public static byte STORE_LWH_ALL;
-
-	@Property(key = "gameserver.trade.all", defaultValue = "10")
-	public static byte TRADE_ALL;
-
-	@Property(key = "gameserver.disable.soulbind", defaultValue = "10")
-	public static byte DISABLE_SOULBIND;
-
-	@Property(key = "gameserver.remodel.all", defaultValue = "10")
-	public static byte REMODEL_ALL;
-
 	@Property(key = "gameserver.emotions.all", defaultValue = "10")
 	public static byte EMOTIONS_ALL;
 

@@ -41,21 +41,21 @@ public class ItemRestrictionService {
 		StorageType type = StorageType.getStorageTypeById(storage);
 		switch (type) {
 			case REGULAR_WAREHOUSE:
-				if (!item.isStorableinWarehouse(player)) {
+				if (!item.isStorableInWarehouse()) {
 					// You cannot store this in the warehouse.
 					PacketSendUtility.sendPacket(player, SM_SYSTEM_MESSAGE.STR_WAREHOUSE_CANT_DEPOSIT_ITEM());
 					return true;
 				}
 				break;
 			case ACCOUNT_WAREHOUSE:
-				if (!item.isStorableinAccWarehouse(player)) {
+				if (!item.isStorableInAccWarehouse()) {
 					// You cannot store this item in the account warehouse.
 					PacketSendUtility.sendPacket(player, SM_SYSTEM_MESSAGE.STR_MSG_WAREHOUSE_CANT_ACCOUNT_DEPOSIT());
 					return true;
 				}
 				break;
 			case LEGION_WAREHOUSE:
-				if (!item.isStorableinLegWarehouse(player) || !LegionConfig.LEGION_WAREHOUSE) {
+				if (!item.isStorableInLegWarehouse() || !LegionConfig.LEGION_WAREHOUSE) {
 					// You cannot store this item in the Legion warehouse.
 					PacketSendUtility.sendPacket(player, SM_SYSTEM_MESSAGE.STR_MSG_WAREHOUSE_CANT_LEGION_DEPOSIT());
 					return true;

@@ -427,7 +427,7 @@ public class BrokerService {
 		}
 
 		// Check Trade Hack
-		if (itemToRegister.getPackCount() <= 0 && !itemToRegister.isTradeable(player))
+		if (itemToRegister.getPackCount() <= 0 && !itemToRegister.isTradeable())
 			return;
 
 		if (!AdminService.getInstance().canOperate(player, null, itemToRegister, "broker"))

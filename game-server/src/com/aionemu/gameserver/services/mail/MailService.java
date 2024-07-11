@@ -111,7 +111,7 @@ public class MailService {
 		Item attachedItem = null;
 		if (senderItem != null) {
 			// Check Mailing untradables with Cash items (Special courier passes)
-			if (senderItem.getPackCount() <= 0 && !senderItem.isTradeable(sender)) {
+			if (senderItem.getPackCount() <= 0 && !senderItem.isTradeable()) {
 				Disposition dispo = senderItem.getItemTemplate().getDisposition();
 				if (dispo == null || dispo.getId() == 0 || dispo.getCount() == 0) // can not be traded, hack
 					return;

@@ -95,7 +95,7 @@ public class PrivateStoreService {
 			PacketSendUtility.sendPacket(store.getOwner(), SM_SYSTEM_MESSAGE.STR_PERSONAL_SHOP_FULL_BASKET());
 			return false;
 		}
-		if (item.getPackCount() <= 0 && !item.isTradeable(store.getOwner())) {
+		if (item.getPackCount() <= 0 && !item.isTradeable()) {
 			PacketSendUtility.sendPacket(store.getOwner(), SM_SYSTEM_MESSAGE.STR_PERSONAL_SHOP_CANNOT_BE_EXCHANGED());
 			return false;
 		}

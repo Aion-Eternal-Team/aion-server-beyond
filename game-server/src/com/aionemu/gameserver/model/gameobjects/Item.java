@@ -5,7 +5,6 @@ import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.aionemu.gameserver.configs.main.MembershipConfig;
 import com.aionemu.gameserver.dao.ItemStoneListDAO;
 import com.aionemu.gameserver.dataholders.DataManager;
 import com.aionemu.gameserver.model.Expirable;
@@ -550,13 +549,6 @@ public class Item extends AionObject implements Expirable, StatOwner, Persistabl
 		return isSoulBound;
 	}
 
-	private boolean isSoulBound(Player player) {
-		if (player.hasPermission(MembershipConfig.DISABLE_SOULBIND)) {
-			return false;
-		} else
-			return isSoulBound;
-	}
-
 	public void setSoulBound(boolean isSoulBound) {
 		this.isSoulBound = isSoulBound;
 		setPersistentState(PersistentState.UPDATE_REQUIRED);
@@ -630,57 +622,28 @@ public class Item extends AionObject implements Expirable, StatOwner, Persistabl
 		return 0;
 	}
 
-	public int getItemMask(Player player) {
-		return checkConfig(player, itemTemplate.getMask());
+	public boolean isStorableInWarehouse() {
+		return (getItemMask() & ItemMask.STORABLE_IN_WH) == ItemMask.STORABLE_IN_WH;
 	}
 
-	private int checkConfig(Player player, int mask) {
-		int newMask = mask;
-		if (player.hasPermission(MembershipConfig.STORE_WH_ALL)) {
-			newMask = newMask | ItemMask.STORABLE_IN_WH;
-		}
-		if (player.hasPermission(MembershipConfig.STORE_AWH_ALL)) {
-			newMask = newMask | ItemMask.STORABLE_IN_AWH;
-		}
-		if (player.hasPermission(MembershipConfig.STORE_LWH_ALL)) {
-			newMask = newMask | ItemMask.STORABLE_IN_LWH;
-		}
-		if (player.hasPermission(MembershipConfig.TRADE_ALL)) {
-			newMask = newMask | ItemMask.TRADEABLE;
-		}
-		if (player.hasPermission(MembershipConfig.REMODEL_ALL)) {
-			newMask = newMask | ItemMask.REMODELABLE;
-		}
-
-		return newMask;
+	public boolean isStorableInAccWarehouse() {
+		return (getItemMask() & ItemMask.STORABLE_IN_AWH) == ItemMask.STORABLE_IN_AWH && !isSoulBound();
 	}
 
-	public boolean isStorableinWarehouse(Player player) {
-		return (getItemMask(player) & ItemMask.STORABLE_IN_WH) == ItemMask.STORABLE_IN_WH;
+	public boolean isStorableInLegWarehouse() {
+		return (getItemMask() & ItemMask.STORABLE_IN_LWH) == ItemMask.STORABLE_IN_LWH && !isSoulBound();
 	}
 
-	public boolean isStorableinAccWarehouse(Player player) {
-		return (getItemMask(player) & ItemMask.STORABLE_IN_AWH) == ItemMask.STORABLE_IN_AWH && !isSoulBound(player);
+	public boolean isTradeable() {
+		return (getItemMask() & ItemMask.TRADEABLE) == ItemMask.TRADEABLE && !isSoulBound();
 	}
 
-	public boolean isStorableinLegWarehouse(Player player) {
-		return (getItemMask(player) & ItemMask.STORABLE_IN_LWH) == ItemMask.STORABLE_IN_LWH && !isSoulBound(player);
+	public boolean isLegionTradeable() {
+		return (getItemMask() & ItemMask.LEGION_TRADEABLE) == ItemMask.LEGION_TRADEABLE && !isSoulBound();
 	}
 
-	public boolean isTradeable(Player player) {
-		return (getItemMask(player) & ItemMask.TRADEABLE) == ItemMask.TRADEABLE && !isSoulBound(player);
-	}
-
-	public boolean isLegionTradeable(Player player, Player partner) {
-		if ((getItemMask(player) & ItemMask.LEGION_TRADEABLE) != ItemMask.LEGION_TRADEABLE || isSoulBound(player))
-			return false;
-		if (player.getLegion() == null || partner.getLegion() == null)
-			return false;
-		return player.getLegion().getLegionId() == partner.getLegion().getLegionId();
-	}
-
-	public boolean isRemodelable(Player player) {
-		return (getItemMask(player) & ItemMask.REMODELABLE) == ItemMask.REMODELABLE;
+	public boolean isRemodelable() {
+		return (getItemMask() & ItemMask.REMODELABLE) == ItemMask.REMODELABLE;
 	}
 
 	public boolean isSellable() {

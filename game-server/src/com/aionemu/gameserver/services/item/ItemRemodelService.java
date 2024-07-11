@@ -87,12 +87,12 @@ public class ItemRemodelService {
 			return;
 		}
 
-		if (!keepItem.isRemodelable(player)) {
+		if (!keepItem.isRemodelable()) {
 			PacketSendUtility.sendPacket(player, SM_SYSTEM_MESSAGE.STR_CHANGE_ITEM_SKIN_NOT_SKIN_CHANGABLE_ITEM(keepItem.getItemTemplate().getL10n()));
 			return;
 		}
 
-		if (!extractItem.isRemodelable(player)) {
+		if (!extractItem.isRemodelable()) {
 			PacketSendUtility.sendPacket(player, SM_SYSTEM_MESSAGE.STR_CHANGE_ITEM_SKIN_CAN_NOT_REMOVE_SKIN_ITEM(extractItem.getItemTemplate().getL10n()));
 			return;
 		}
