@@ -108,7 +108,7 @@ public class PlayerPunishmentsDAO {
 			@Override
 			public void handleRead(ResultSet rs) throws SQLException {
 				while (rs.next()) {
-					charBan[0] = new CharacterBanInfo(playerId, rs.getLong("start_time"), rs.getLong("duration"), rs.getString("reason"));
+					charBan[0] = new CharacterBanInfo(rs.getLong("start_time"), rs.getLong("duration"), rs.getString("reason"));
 				}
 			}
 		});

@@ -1,9 +1,6 @@
 package com.aionemu.gameserver.configs.main;
 
-import java.util.Set;
-
 import com.aionemu.commons.configuration.Property;
-import com.aionemu.gameserver.network.aion.AionClientPacket;
 
 public class SecurityConfig {
 	
@@ -79,15 +76,19 @@ public class SecurityConfig {
 	@Property(key = "gameserver.security.survey.delay.minute", defaultValue = "20")
 	public static int SURVEY_DELAY;
 
-	@Property(key = "gameserver.security.check.dualboxing", defaultValue = "false")
-	public static boolean DUALBOXING;
+	@Property(key = "gameserver.security.multi_clienting.restriction_mode", defaultValue = "NONE")
+	public static MultiClientingRestrictionMode MULTI_CLIENTING_RESTRICTION_MODE;
 
-	@Property(key = "gameserver.security.kick.dualboxing", defaultValue = "false")
-	public static boolean KICK_DUALBOXING;
+	@Property(key = "gameserver.security.multi_clienting.faction_switch_cooldown_minutes", defaultValue = "20")
+	public static int MULTI_CLIENTING_FACTION_SWITCH_COOLDOWN_MINUTES;
 
 	@Property(key = "gameserver.security.hdd_serial_lock.enable", defaultValue = "false")
 	public static boolean HDD_SERIAL_LOCK_ENABLE;
 
 	@Property(key = "gameserver.security.hdd_serial_lock.auto_lock", defaultValue = "false")
 	public static boolean HDD_SERIAL_LOCK_UNLOCKED_ACCOUNTS;
+
+	public enum MultiClientingRestrictionMode {
+		NONE, FULL, SAME_FACTION
+	}
 }

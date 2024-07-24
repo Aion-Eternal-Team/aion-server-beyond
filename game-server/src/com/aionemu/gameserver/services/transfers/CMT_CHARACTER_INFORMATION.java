@@ -262,8 +262,8 @@ public class CMT_CHARACTER_INFORMATION extends BaseClientPacket<AionConnection> 
 		}
 
 		cnt = readD();
-		textLog.info("MacroList:" + cnt);
-		player.setMacroList(new MacroList());
+		textLog.info("Macros:" + cnt);
+		player.setMacros(new Macros());
 		for (int a = 0; a < cnt; a++) { // macros
 			int id = readD();
 			String xml = readS();

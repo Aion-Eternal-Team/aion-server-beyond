@@ -49,7 +49,7 @@ public class CalindiFlamelordAI extends AggressiveNpcAI {
 					spawn(281267, 1163.5889f, 1231.9149f, 145.40042f, (byte) 118);
 				} else {
 					rndSpawnInRange(281268, 1, 2);
-					rndSpawnInRange(281268, 1, 1);
+					rndSpawnInRange(281268, 1, 2);
 				}
 				break;
 			case 19679: // You are unworthy.

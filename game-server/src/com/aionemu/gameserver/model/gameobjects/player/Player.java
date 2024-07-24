@@ -94,7 +94,7 @@ public class Player extends Creature {
 	private final Account playerAccount;
 	private LegionMember legionMember;
 
-	private MacroList macroList;
+	private Macros macros;
 	private PlayerSkillList skillList;
 	private FriendList friendList;
 	private BlockList blockList;
@@ -281,12 +281,12 @@ public class Player extends Creature {
 		return clientConnection;
 	}
 
-	public MacroList getMacroList() {
-		return macroList;
+	public Macros getMacros() {
+		return macros;
 	}
 
-	public void setMacroList(MacroList macroList) {
-		this.macroList = macroList;
+	public void setMacros(Macros macros) {
+		this.macros = macros;
 	}
 
 	public PlayerSkillList getSkillList() {

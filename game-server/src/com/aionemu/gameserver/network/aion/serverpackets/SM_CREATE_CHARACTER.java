@@ -63,6 +63,6 @@ public class SM_CREATE_CHARACTER extends AbstractPlayerInfoPacket {
 		if (responseCode != RESPONSE_OK)
 			return;
 
-		writePlayerInfo(playerAccData);
+		writePlayerInfo(playerAccData, con);
 	}
 }
