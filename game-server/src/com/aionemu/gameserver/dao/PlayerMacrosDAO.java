@@ -4,8 +4,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,7 +11,7 @@ import org.slf4j.LoggerFactory;
 import com.aionemu.commons.database.DB;
 import com.aionemu.commons.database.DatabaseFactory;
 import com.aionemu.commons.database.IUStH;
-import com.aionemu.gameserver.model.gameobjects.player.MacroList;
+import com.aionemu.gameserver.model.gameobjects.player.Macros;
 
 /**
  * Created on: 13.07.2009 17:05:56
@@ -67,20 +65,18 @@ public class PlayerMacrosDAO {
 		});
 	}
 
-	public static MacroList loadMacros(int playerId) {
-		Map<Integer, String> macros = new HashMap<>();
+	public static Macros loadMacros(int playerId) {
+		Macros macros = new Macros();
 		try (Connection con = DatabaseFactory.getConnection(); PreparedStatement stmt = con.prepareStatement(SELECT_QUERY)) {
 			stmt.setInt(1, playerId);
 			try (ResultSet rset = stmt.executeQuery()) {
 				while (rset.next()) {
-					int order = rset.getInt("order");
-					String text = rset.getString("macro");
-					macros.put(order, text);
+					macros.add(rset.getInt("order"), rset.getString("macro"));
 				}
 			}
 		} catch (Exception e) {
 			log.error("Could not load macros for player " + playerId, e);
 		}
-		return new MacroList(macros);
+		return macros;
 	}
 }

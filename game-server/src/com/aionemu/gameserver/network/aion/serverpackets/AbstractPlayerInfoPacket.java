@@ -3,6 +3,7 @@ package com.aionemu.gameserver.network.aion.serverpackets;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.aionemu.gameserver.configs.main.SecurityConfig;
 import com.aionemu.gameserver.dao.MailDAO;
 import com.aionemu.gameserver.dao.PlayerSettingsDAO;
 import com.aionemu.gameserver.model.account.CharacterBanInfo;
@@ -11,8 +12,10 @@ import com.aionemu.gameserver.model.gameobjects.Item;
 import com.aionemu.gameserver.model.gameobjects.player.PlayerAppearance;
 import com.aionemu.gameserver.model.gameobjects.player.PlayerCommonData;
 import com.aionemu.gameserver.model.items.ItemSlot;
+import com.aionemu.gameserver.network.aion.AionConnection;
 import com.aionemu.gameserver.network.aion.AionServerPacket;
 import com.aionemu.gameserver.services.BrokerService;
+import com.aionemu.gameserver.services.player.MultiClientingService;
 
 /**
  * @author AEJTester, Nemesiss, Niato, Neon
@@ -24,12 +27,11 @@ public abstract class AbstractPlayerInfoPacket extends AionServerPacket {
 	 */
 	public static final int CHARNAME_MAX_LENGTH = 25;
 
-	protected void writePlayerInfo(PlayerAccountData accPlData) {
+	protected void writePlayerInfo(PlayerAccountData accPlData, AionConnection con) {
 		PlayerCommonData pcd = accPlData.getPlayerCommonData();
 		int playerId = pcd.getPlayerObjId();
 		PlayerAppearance playerAppearance = accPlData.getAppearance();
-		CharacterBanInfo cbi = accPlData.getCharBanInfo();
-		boolean isBanned = (cbi != null && cbi.getEnd() > System.currentTimeMillis() / 1000);
+		CharacterBanInfo cbi = getCharBanInfo(accPlData, con);
 
 		List<Item> itemList = new ArrayList<>(16);
 		for (Item item : accPlData.getEquipment()) {
@@ -143,9 +145,9 @@ public abstract class AbstractPlayerInfoPacket extends AionServerPacket {
 		writeD(0);
 		writeD(0);
 		writeD(0);
-		writeD(isBanned ? (int) cbi.getStart() : 0); // startPunishDate
-		writeD(isBanned ? (int) cbi.getEnd() : 0); // endPunishDate
-		writeS(isBanned ? cbi.getReason() : "");
+		writeD(cbi == null ? 0 : (int) cbi.getStart()); // startPunishDate
+		writeD(cbi == null ? 0 : (int) cbi.getEnd()); // endPunishDate
+		writeS(cbi == null ? "" : cbi.getReason());
 	}
 
 	@SuppressWarnings("lossy-conversions")
@@ -166,5 +168,20 @@ public abstract class AbstractPlayerInfoPacket extends AionServerPacket {
 			writeH(item.getItemEnchantParam());
 			writeH(0); // 4.7
 		}
+	}
+
+	private CharacterBanInfo getCharBanInfo(PlayerAccountData playerAccountData, AionConnection con) {
+		CharacterBanInfo cbi = playerAccountData.getCharBanInfo();
+		if (cbi != null && cbi.getEnd() > System.currentTimeMillis() / 1000)
+			cbi = null;
+		if (cbi == null && SecurityConfig.MULTI_CLIENTING_RESTRICTION_MODE == SecurityConfig.MultiClientingRestrictionMode.SAME_FACTION) {
+			int cdMinutes = SecurityConfig.MULTI_CLIENTING_FACTION_SWITCH_COOLDOWN_MINUTES;
+			if (cdMinutes > 0 && MultiClientingService.checkForFactionSwitchCooldownTime(playerAccountData.getPlayerCommonData().getRace(), con) != null) {
+				long nowSeconds = System.currentTimeMillis() / 1000;
+				int durationSeconds = 61; // client will send CM_CHARACTER_LIST after this duration to update the ban info (<61s corrupts the ban info)
+				cbi = new CharacterBanInfo(nowSeconds, durationSeconds, "\n\n\n\uE026 " + cdMinutes + " minute cooldown between switching factions\n\n\n\n\n\n\n");
+			}
+		}
+		return cbi;
 	}
 }

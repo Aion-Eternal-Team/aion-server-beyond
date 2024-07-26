@@ -118,7 +118,7 @@ public class PlayerService {
 			player.setLegionMember(legionMember);
 		}
 
-		player.setMacroList(PlayerMacrosDAO.loadMacros(playerObjId));
+		player.setMacros(PlayerMacrosDAO.loadMacros(playerObjId));
 		player.setSkillList(PlayerSkillListDAO.loadSkillList(playerObjId));
 		player.setKnownlist(new KnownList(player));
 		player.setFriendList(FriendListDAO.load(player));
@@ -350,7 +350,7 @@ public class PlayerService {
 	 *          Macro XML
 	 */
 	public static void addMacro(Player player, int macroOrder, String macroXML) {
-		if (player.getMacroList().addMacro(macroOrder, macroXML)) {
+		if (player.getMacros().add(macroOrder, macroXML)) {
 			PlayerMacrosDAO.addMacro(player.getObjectId(), macroOrder, macroXML);
 		} else {
 			PlayerMacrosDAO.updateMacro(player.getObjectId(), macroOrder, macroXML);
@@ -366,7 +366,7 @@ public class PlayerService {
 	 *          Macro order index
 	 */
 	public static void removeMacro(Player player, int macroOrder) {
-		if (player.getMacroList().removeMacro(macroOrder)) {
+		if (player.getMacros().remove(macroOrder)) {
 			PlayerMacrosDAO.deleteMacro(player.getObjectId(), macroOrder);
 		}
 	}

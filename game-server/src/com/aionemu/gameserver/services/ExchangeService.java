@@ -127,11 +127,6 @@ public class ExchangeService {
 		}
 	}
 
-	/**
-	 * @param activePlayer
-	 * @param itemObjId
-	 * @param itemCount
-	 */
 	public void addItem(Player activePlayer, int itemObjId, long itemCount) {
 		Item item = activePlayer.getInventory().getItemByObjId(itemObjId);
 		if (item == null)
@@ -140,11 +135,10 @@ public class ExchangeService {
 		Player partner = getCurrentParter(activePlayer);
 		if (partner == null)
 			return;
-		if (!TemporaryTradeTimeTask.getInstance().canTrade(item, partner.getObjectId()))
-			if (item.getPackCount() <= 0 && !item.isTradeable(activePlayer)) {
-				if (!item.isLegionTradeable(activePlayer, partner))
-					return;
-			}
+		if (item.getPackCount() <= 0 && !item.isTradeable() && !TemporaryTradeTimeTask.getInstance().canTrade(item, partner.getObjectId())) {
+			if (!item.isLegionTradeable() || activePlayer.getLegion() == null || !activePlayer.getLegion().equals(partner.getLegion()))
+				return;
+		}
 
 		if (itemCount < 1)
 			return;

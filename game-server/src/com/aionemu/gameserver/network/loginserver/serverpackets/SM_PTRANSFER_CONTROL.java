@@ -3,7 +3,6 @@ package com.aionemu.gameserver.network.loginserver.serverpackets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -236,11 +235,11 @@ public class SM_PTRANSFER_CONTROL extends LsServerPacket {
 					writeC(motion.isActive() ? 1 : 0);
 				}
 
-				MacroList macro = this.player.getMacroList();
-				writeD(macro.getMacrosses().size());
-				for (Entry<Integer, String> m : macro.getMacrosses().entrySet()) {
-					writeD(m.getKey());
-					writeS(m.getValue());
+				List<Macros.Macro> macros = player.getMacros().getAll();
+				writeD(macros.size());
+				for (Macros.Macro m : macros) {
+					writeD(m.id());
+					writeS(m.xml());
 				}
 
 				NpcFactions nf = this.player.getNpcFactions();
