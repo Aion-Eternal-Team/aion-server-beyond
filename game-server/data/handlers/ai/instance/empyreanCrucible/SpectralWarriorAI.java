@@ -10,7 +10,7 @@ import com.aionemu.gameserver.utils.ThreadPoolManager;
 import ai.AggressiveNpcAI;
 
 /**
- * @author Luzien
+ * @author Luzien, w4terbomb
  */
 @AIName("spectral_warrior")
 public class SpectralWarriorAI extends AggressiveNpcAI implements HpPhases.PhaseHandler {
@@ -30,7 +30,7 @@ public class SpectralWarriorAI extends AggressiveNpcAI implements HpPhases.Phase
 	@Override
 	public void handleHpPhase(int phaseHpPercent) {
 		getPosition().getWorldMapInstance().getInstanceHandler().onChangeStage(StageType.START_STAGE_6_ROUND_5);
-		ThreadPoolManager.getInstance().schedule(this::resurrectAllies, 2000);
+		ThreadPoolManager.getInstance().scheduleAtFixedRate(this::resurrectAllies, 0, 2000);
 	}
 
 	private void resurrectAllies() {

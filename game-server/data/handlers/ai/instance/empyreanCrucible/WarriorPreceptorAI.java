@@ -1,24 +1,19 @@
 package ai.instance.empyreanCrucible;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import com.aionemu.commons.utils.Rnd;
 import com.aionemu.gameserver.ai.AIName;
 import com.aionemu.gameserver.model.gameobjects.Creature;
 import com.aionemu.gameserver.model.gameobjects.Npc;
-import com.aionemu.gameserver.model.gameobjects.player.Player;
-import com.aionemu.gameserver.skillengine.SkillEngine;
+import com.aionemu.gameserver.model.templates.npcskill.NpcSkillTargetAttribute;
 import com.aionemu.gameserver.utils.PacketSendUtility;
-import com.aionemu.gameserver.utils.PositionUtil;
 import com.aionemu.gameserver.utils.ThreadPoolManager;
 
 import ai.AggressiveNpcAI;
 
 /**
- * @author Luzien
+ * @author Luzien, w4terbomb
  */
 @AIName("warrior_preceptor")
 public class WarriorPreceptorAI extends AggressiveNpcAI {
@@ -74,19 +69,10 @@ public class WarriorPreceptorAI extends AggressiveNpcAI {
 
 	private void startSkillEvent() {
 		PacketSendUtility.broadcastMessage(getOwner(), 1500207);
-		SkillEngine.getInstance().getSkill(getOwner(), 19595, 10, getTargetPlayer()).useNoAnimationSkill();
+		getOwner().queueSkill(19596, 15, 0, NpcSkillTargetAttribute.RANDOM);
 		ThreadPoolManager.getInstance().schedule(() -> {
 			if (!isDead())
-				SkillEngine.getInstance().getSkill(getOwner(), 19596, 15, getOwner()).useNoAnimationSkill();
+				getOwner().queueSkill(19596, 15, 0);
 		}, 6000);
-	}
-
-	private Player getTargetPlayer() {
-		List<Player> players = new ArrayList<>();
-		getKnownList().forEachPlayer(player -> {
-			if (!player.isDead() && PositionUtil.isInRange(player, getOwner(), 15))
-				players.add(player);
-		});
-		return Rnd.get(players);
 	}
 }

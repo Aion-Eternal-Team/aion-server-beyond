@@ -74,6 +74,7 @@ public class EmpyreanRecordKeeperAI extends NpcAI {
 				case 205336 -> instanceHandler.onChangeStage(StageType.START_STAGE_9_ROUND_1);
 				case 205343 -> instanceHandler.onChangeStage(StageType.START_STAGE_10);
 				case 205337 -> instanceHandler.onChangeStage(StageType.START_STAGE_10_ROUND_1);
+				case 205344 -> getPosition().getWorldMapInstance().getInstanceHandler().doReward(player);
 			}
 			AIActions.deleteOwner(this);
 		} else if (dialogActionId == SETPRO2 && getNpcId() == 799567) {

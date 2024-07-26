@@ -6,14 +6,13 @@ import com.aionemu.gameserver.ai.AIName;
 import com.aionemu.gameserver.ai.HpPhases;
 import com.aionemu.gameserver.model.gameobjects.Creature;
 import com.aionemu.gameserver.model.gameobjects.Npc;
-import com.aionemu.gameserver.skillengine.SkillEngine;
 import com.aionemu.gameserver.utils.PacketSendUtility;
 import com.aionemu.gameserver.utils.ThreadPoolManager;
 
 import ai.AggressiveNpcAI;
 
 /**
- * @author Luzien
+ * @author Luzien, w4terbomb
  */
 @AIName("alukina_emp")
 public class QueenAlukinaAI extends AggressiveNpcAI implements HpPhases.PhaseHandler {
@@ -52,7 +51,7 @@ public class QueenAlukinaAI extends AggressiveNpcAI implements HpPhases.PhaseHan
 
 	@Override
 	public void handleHpPhase(int phaseHpPercent) {
-		SkillEngine.getInstance().getSkill(getOwner(), 17899, 41, getTarget()).useNoAnimationSkill();
+		getOwner().queueSkill(17899, 41, 0);
 		switch (phaseHpPercent) {
 			case 75 -> {
 				scheduleSkill(17900, 4500);
@@ -68,7 +67,7 @@ public class QueenAlukinaAI extends AggressiveNpcAI implements HpPhases.PhaseHan
 				if (isDead()) {
 					cancelTask();
 				} else {
-					SkillEngine.getInstance().getSkill(getOwner(), 17901, 41, getTarget()).useNoAnimationSkill();
+					getOwner().queueSkill(17901, 41, 0);
 					scheduleSkill(17902, 5500);
 					scheduleSkill(17902, 7500);
 				}
@@ -84,7 +83,7 @@ public class QueenAlukinaAI extends AggressiveNpcAI implements HpPhases.PhaseHan
 	private void scheduleSkill(final int skill, int delay) {
 		ThreadPoolManager.getInstance().schedule(() -> {
 			if (!isDead())
-				SkillEngine.getInstance().getSkill(getOwner(), skill, 41, getTarget()).useNoAnimationSkill();
+				getOwner().queueSkill(skill, 41, 0);
 		}, delay);
 	}
 }

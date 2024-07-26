@@ -25,10 +25,8 @@ public class EmpyreanArbiterAI extends NpcAI {
 
 	@Override
 	protected void handleDialogStart(Player player) {
-		if (player.getInventory().getFirstItemByItemId(186000124) != null)
-			PacketSendUtility.sendPacket(player, new SM_DIALOG_WINDOW(getObjectId(), 1011));
-		else
-			PacketSendUtility.sendPacket(player, new SM_DIALOG_WINDOW(getObjectId(), 0));
+		PacketSendUtility.sendPacket(player, player.getInventory().getFirstItemByItemId(186000124) != null ? new SM_DIALOG_WINDOW(getObjectId(), 1011)
+			: new SM_DIALOG_WINDOW(getObjectId(), 0));
 	}
 
 	@Override

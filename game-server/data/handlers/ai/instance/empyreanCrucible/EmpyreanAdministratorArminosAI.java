@@ -6,7 +6,7 @@ import com.aionemu.gameserver.model.gameobjects.Npc;
 import com.aionemu.gameserver.utils.PacketSendUtility;
 
 /**
- * @author xTz
+ * @author xTz, w4terbomb
  */
 @AIName("empadministratorarminos")
 public class EmpyreanAdministratorArminosAI extends NpcAI {
@@ -23,23 +23,33 @@ public class EmpyreanAdministratorArminosAI extends NpcAI {
 
 	private void startEvent() {
 		switch (getNpcId()) {
-			case 217744 -> {
-				PacketSendUtility.broadcastMessage(getOwner(), 1500247, 8000);
-				PacketSendUtility.broadcastMessage(getOwner(), 1500250, 20000);
-				PacketSendUtility.broadcastMessage(getOwner(), 1500251, 60000);
+			case 217744 -> handleEventForNpcId217744();
+			case 217749 -> handleEventForNpcId217749();
+			default -> {
 			}
-			case 217749 -> {
-				PacketSendUtility.broadcastMessage(getOwner(), 1500252, 8000);
-				PacketSendUtility.broadcastMessage(getOwner(), 1500253, 16000);
-				PacketSendUtility.broadcastToMap(getOwner(), 1400982, 25000);
-				PacketSendUtility.broadcastToMap(getOwner(), 1400988, 27000);
-				PacketSendUtility.broadcastToMap(getOwner(), 1400989, 29000);
-				PacketSendUtility.broadcastToMap(getOwner(), 1400990, 31000);
-				PacketSendUtility.broadcastToMap(getOwner(), 1401013, 93000);
-				PacketSendUtility.broadcastToMap(getOwner(), 1401014, 113000);
-				PacketSendUtility.broadcastToMap(getOwner(), 1401015, 118000);
-				PacketSendUtility.broadcastMessage(getOwner(), 1500255, 118000);
-			}
+		}
+	}
+
+	private void handleEventForNpcId217744() {
+		sendBroadcastMessages(new int[] { 1500247, 1500250, 1500251 }, new int[] { 8000, 20000, 60000 });
+	}
+
+	private void handleEventForNpcId217749() {
+		sendBroadcastMessages(new int[] { 1500252, 1500253, 1500255 }, new int[] { 8000, 16000, 118000 });
+
+		broadcastToMap(new int[] { 1400982, 1400988, 1400989, 1400990, 1401013, 1401014, 1401015 },
+			new int[] { 25000, 27000, 29000, 31000, 93000, 113000, 118000 });
+	}
+
+	private void sendBroadcastMessages(int[] messageIds, int[] delays) {
+		for (int i = 0; i < messageIds.length; i++) {
+			PacketSendUtility.broadcastMessage(getOwner(), messageIds[i], delays[i]);
+		}
+	}
+
+	private void broadcastToMap(int[] mapMessageIds, int[] delays) {
+		for (int i = 0; i < mapMessageIds.length; i++) {
+			PacketSendUtility.broadcastToMap(getOwner(), mapMessageIds[i], delays[i]);
 		}
 	}
 }

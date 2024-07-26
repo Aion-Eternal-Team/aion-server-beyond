@@ -1,23 +1,18 @@
 package ai.instance.empyreanCrucible;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import com.aionemu.commons.utils.Rnd;
 import com.aionemu.gameserver.ai.AIName;
 import com.aionemu.gameserver.ai.HpPhases;
 import com.aionemu.gameserver.model.gameobjects.Creature;
 import com.aionemu.gameserver.model.gameobjects.Npc;
-import com.aionemu.gameserver.model.gameobjects.player.Player;
-import com.aionemu.gameserver.skillengine.SkillEngine;
-import com.aionemu.gameserver.utils.PositionUtil;
+import com.aionemu.gameserver.model.templates.npcskill.NpcSkillTargetAttribute;
 import com.aionemu.gameserver.utils.ThreadPoolManager;
 import com.aionemu.gameserver.world.WorldPosition;
 
 import ai.AggressiveNpcAI;
 
 /**
- * @author Luzien
+ * AI for Mage Preceptor in Empyrean Crucible
+ * @author Luzien, w4terbomb
  */
 @AIName("mage_preceptor")
 public class MagePreceptorAI extends AggressiveNpcAI implements HpPhases.PhaseHandler {
@@ -56,54 +51,57 @@ public class MagePreceptorAI extends AggressiveNpcAI implements HpPhases.PhaseHa
 	@Override
 	public void handleHpPhase(int phaseHpPercent) {
 		switch (phaseHpPercent) {
-			case 75 -> SkillEngine.getInstance().getSkill(getOwner(), 19605, 10, getTargetPlayer()).useNoAnimationSkill();
-			case 50 -> {
-				SkillEngine.getInstance().getSkill(getOwner(), 19606, 10, getTarget()).useNoAnimationSkill();
-				ThreadPoolManager.getInstance().schedule(() -> {
-					if (!isDead()) {
-						SkillEngine.getInstance().getSkill(getOwner(), 19609, 10, getOwner()).useNoAnimationSkill();
-						ThreadPoolManager.getInstance().schedule(() -> {
-							WorldPosition p = getPosition();
-							spawn(282364, p.getX(), p.getY(), p.getZ(), p.getHeading());
-							spawn(282363, p.getX(), p.getY(), p.getZ(), p.getHeading());
-							scheduleSkill(2000);
-						}, 4500);
-					}
-				}, 3000);
-			}
-			case 25 -> {
-				SkillEngine.getInstance().getSkill(getOwner(), 19606, 10, getTarget()).useNoAnimationSkill();
-				scheduleSkill(3000);
-				scheduleSkill(9000);
-				scheduleSkill(15000);
-			}
+			case 75 -> queueSkill(19605, NpcSkillTargetAttribute.RANDOM);
+			case 50 -> handle50PercentPhase();
+			case 25 -> handle25PercentPhase();
 		}
 	}
 
-	private void scheduleSkill(int delay) {
-		ThreadPoolManager.getInstance().schedule(() -> {
-			if (!isDead())
-				SkillEngine.getInstance().getSkill(getOwner(), 19605, 10, getTargetPlayer()).useNoAnimationSkill();
-		}, delay);
+	private void handle50PercentPhase() {
+		queueSkill(19609, NpcSkillTargetAttribute.MOST_HATED);
+		scheduleTask(() -> {
+			if (!isDead()) {
+				queueSkill(19609, NpcSkillTargetAttribute.MOST_HATED);
+				scheduleTask(this::spawnNpcs, 4500);
+			}
+		}, 3000);
 	}
 
-	private Player getTargetPlayer() {
-		List<Player> players = new ArrayList<>();
-		getKnownList().forEachPlayer(player -> {
-			if (!player.isDead() && PositionUtil.isInRange(player, getOwner(), 37)) {
-				players.add(player);
-			}
-		});
-		return Rnd.get(players);
+	private void handle25PercentPhase() {
+		queueSkill(19605, NpcSkillTargetAttribute.RANDOM);
+		scheduleRepeatedSkills(3000, 9000, 15000);
+	}
+
+	private void queueSkill(int skillId, NpcSkillTargetAttribute targetAttribute) {
+		getOwner().queueSkill(skillId, 10, 0, targetAttribute);
+	}
+
+	private void scheduleTask(Runnable task, int delay) {
+		ThreadPoolManager.getInstance().schedule(task, delay);
+	}
+
+	private void scheduleRepeatedSkills(int... delays) {
+		for (int delay : delays) {
+			scheduleTask(() -> queueSkill(19605, NpcSkillTargetAttribute.RANDOM), delay);
+		}
+	}
+
+	private void spawnNpcs() {
+		WorldPosition p = getPosition();
+		spawn(282364, p.getX(), p.getY(), p.getZ(), p.getHeading());
+		spawn(282363, p.getX(), p.getY(), p.getZ(), p.getHeading());
+		scheduleTask(() -> queueSkill(19605, NpcSkillTargetAttribute.RANDOM), 2000);
 	}
 
 	private void despawnNpcs() {
-		despawnNpc(getPosition().getWorldMapInstance().getNpc(282364));
-		despawnNpc(getPosition().getWorldMapInstance().getNpc(282363));
+		despawnNpc(282364);
+		despawnNpc(282363);
 	}
 
-	private void despawnNpc(Npc npc) {
-		if (npc != null)
+	private void despawnNpc(int npcId) {
+		Npc npc = getPosition().getWorldMapInstance().getNpc(npcId);
+		if (npc != null) {
 			npc.getController().delete();
+		}
 	}
 }
