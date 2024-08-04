@@ -1,9 +1,9 @@
 package ai.instance.empyreanCrucible;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Future;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.aionemu.commons.utils.Rnd;
 import com.aionemu.gameserver.ai.AIName;
@@ -11,9 +11,10 @@ import com.aionemu.gameserver.ai.HpPhases;
 import com.aionemu.gameserver.model.gameobjects.Creature;
 import com.aionemu.gameserver.model.gameobjects.Npc;
 import com.aionemu.gameserver.model.gameobjects.player.Player;
+import com.aionemu.gameserver.skillengine.model.SkillTemplate;
 import com.aionemu.gameserver.utils.PacketSendUtility;
 import com.aionemu.gameserver.utils.ThreadPoolManager;
-import com.aionemu.gameserver.world.WorldPosition;
+import com.aionemu.gameserver.world.geo.GeoService;
 
 import ai.AggressiveNoLootNpcAI;
 
@@ -23,11 +24,9 @@ import ai.AggressiveNoLootNpcAI;
 @AIName("vanktrist")
 public class VanktristAI extends AggressiveNoLootNpcAI implements HpPhases.PhaseHandler {
 
-	private final HpPhases hpPhases = new HpPhases(75, 50);
+	private final HpPhases hpPhases = new HpPhases(100, 75, 50);
 
 	private Future<?> phaseTask;
-	private final AtomicBoolean isAggred = new AtomicBoolean(false);
-	private final AtomicBoolean isStartedEvent = new AtomicBoolean(false);
 
 	private VanktristAI(Npc owner) {
 		super(owner);
@@ -36,26 +35,18 @@ public class VanktristAI extends AggressiveNoLootNpcAI implements HpPhases.Phase
 	@Override
 	protected void handleAttack(Creature creature) {
 		super.handleAttack(creature);
-		if (isAggred.compareAndSet(false, true)) {
-			PacketSendUtility.broadcastMessage(getOwner(), 0);
-		}
-		checkPercentage(getLifeStats().getHpPercentage());
-	}
-
-	public void checkPercentage(int hpPercentage) {
-		switch (hpPercentage) {
-			case 50, 75 -> {
-				if (isStartedEvent.compareAndSet(false, true))
-					startPhaseTask();
-			}
-		}
+		hpPhases.tryEnterNextPhase(this);
 	}
 
 	@Override
 	public void handleHpPhase(int phaseHpPercent) {
 		switch (phaseHpPercent) {
-			case 75 -> PacketSendUtility.broadcastMessage(getOwner(), 1500210, 0, 0);
-			case 50 -> PacketSendUtility.broadcastMessage(getOwner(), 1500211, 0, 0);
+			case 100 -> PacketSendUtility.broadcastMessage(getOwner(), 0); // FIXME
+			case 75 -> {
+				PacketSendUtility.broadcastMessage(getOwner(), 1500210); // STR_CHAT_IDArena_STAGE7_D_R1_Die TODO correct msg
+				startPhaseTask();
+			}
+			case 50 -> PacketSendUtility.broadcastMessage(getOwner(), 1500211); // STR_CHAT_IDArena_STAGE7_L_R2_Skill1 TODO different msg for L/D
 		}
 	}
 
@@ -64,41 +55,31 @@ public class VanktristAI extends AggressiveNoLootNpcAI implements HpPhases.Phase
 			if (isDead()) {
 				cancelPhaseTask();
 			} else {
-				getOwner().queueSkill(19567, 46, 0); //Gravitational Shift.
-				List<Player> players = getLifedPlayers();
-				if (!players.isEmpty()) {
-					int size = players.size();
-					int count = Rnd.get(1, size);
-					for (int i = 0; i < count; i++) {
-						spawnWeakenedDimensionalVortex(players.get(Rnd.get(players.getFirst().getObjectId(), players.size())));
-					}
-				}
+				getOwner().queueSkill(19567, 46); // Gravitational Shift
 			}
 		}, 3000, 15000);
 	}
 
-	private void spawnWeakenedDimensionalVortex(Player player) {
-		final float x = player.getX();
-		final float y = player.getY();
-		final float z = player.getZ();
-		if (x > 0 && y > 0 && z > 0) {
-			ThreadPoolManager.getInstance().schedule(new Runnable() {
-				@Override
-				public void run() {
-					if (!isDead()) {
-						spawn(217804, x, y, z, (byte) 0); //Weakened Dimensional Vortex.
-					}
+	@Override
+	public void onEndUseSkill(SkillTemplate skillTemplate, int skillLevel) {
+		if (skillTemplate.getSkillId() == 19567 && !isDead()) {
+			List<Player> players = getAttackablePlayers();
+			if (!players.isEmpty()) {
+				Collections.shuffle(players);
+				int count = Rnd.get(1, players.size());
+				for (int i = 0; i < count; i++) {
+					Player player = players.get(i);
+					spawn(217804, player.getX(), player.getY(), player.getZ(), (byte) 0); // Weakened Dimensional Vortex
 				}
-			}, 3000);
+			}
 		}
 	}
 
-	private List<Player> getLifedPlayers() {
-		List<Player> players = new ArrayList<Player>();
+	private List<Player> getAttackablePlayers() {
+		List<Player> players = new ArrayList<>();
 		for (Player player : getKnownList().getKnownPlayers().values()) {
-			if (!isDead()) {
+			if (!player.isDead() && GeoService.getInstance().canSee(getOwner(), player))
 				players.add(player);
-			}
 		}
 		return players;
 	}
@@ -118,27 +99,14 @@ public class VanktristAI extends AggressiveNoLootNpcAI implements HpPhases.Phase
 	@Override
 	protected void handleBackHome() {
 		cancelPhaseTask();
-		isStartedEvent.set(false);
-		isAggred.set(false);
 		super.handleBackHome();
+		hpPhases.reset();
 	}
 
 	@Override
 	protected void handleDied() {
-		final WorldPosition p = getPosition();
-		if (p != null) {
-			deleteNpcs(p.getWorldMapInstance().getNpcs(217804)); //Vortex.
-		}
+		getPosition().getWorldMapInstance().getNpcs(217804).forEach(npc -> npc.getController().onDelete()); // Weakened Dimensional Vortex
 		cancelPhaseTask();
 		super.handleDied();
 	}
-
-	private void deleteNpcs(List<Npc> npcs) {
-		for (Npc npc : npcs) {
-			if (npc != null) {
-				npc.getController().onDelete();
-			}
-		}
-	}
-
 }

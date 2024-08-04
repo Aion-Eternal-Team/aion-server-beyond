@@ -37,14 +37,14 @@ public class ArminosDrakyAI extends GeneralNpcAI {
 	@Override
 	protected void handleMoveArrived() {
 		super.handleMoveArrived();
-		if (getOwner().getMoveController().getCurrentStep().isLastStep())
+		if (getOwner().getMoveController().getCurrentStep().isLastStep()) { // circle twice
 			if (!isStart) {
 				getSpawnTemplate().setWalkerId(null);
 				WalkManager.stopWalking(this);
 				AIActions.deleteOwner(this);
-			} else {
+			} else
 				isStart = false;
-			}
+		}
 	}
 
 	@Override

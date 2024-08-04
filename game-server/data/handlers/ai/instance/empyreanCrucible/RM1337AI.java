@@ -1,7 +1,6 @@
 package ai.instance.empyreanCrucible;
 
 import java.util.concurrent.Future;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.IntStream;
 
 import com.aionemu.commons.utils.Rnd;
@@ -21,10 +20,7 @@ import ai.AggressiveNpcAI;
 @AIName("rm_1337")
 public class RM1337AI extends AggressiveNpcAI implements HpPhases.PhaseHandler {
 
-	private final HpPhases hpPhases = new HpPhases(15, 35, 55, 75, 95);
-
-	private final AtomicBoolean isHome = new AtomicBoolean(true);
-	private final AtomicBoolean isEventStarted = new AtomicBoolean(false);
+	private final HpPhases hpPhases = new HpPhases(100, 75);
 	private Future<?> task1, task2;
 
 	public RM1337AI(Npc owner) {
@@ -32,45 +28,42 @@ public class RM1337AI extends AggressiveNpcAI implements HpPhases.PhaseHandler {
 	}
 
 	@Override
-	public void handleSpawned() {
+	protected void handleSpawned() {
 		super.handleSpawned();
 		PacketSendUtility.broadcastMessage(getOwner(), 1500229, 2000);
 	}
 
 	@Override
-	public void handleDespawned() {
+	protected void handleDespawned() {
 		cancelTask();
 		super.handleDespawned();
 	}
 
 	@Override
-	public void handleDied() {
+	protected void handleDied() {
 		cancelTask();
 		PacketSendUtility.broadcastMessage(getOwner(), 1500231);
 		super.handleDied();
 	}
 
 	@Override
-	public void handleBackHome() {
+	protected void handleBackHome() {
 		cancelTask();
 		super.handleBackHome();
+		hpPhases.reset();
 	}
 
 	@Override
-	public void handleAttack(Creature creature) {
+	protected void handleAttack(Creature creature) {
 		super.handleAttack(creature);
-		if (isHome.compareAndSet(true, false))
-			startSkillTask1();
-		handleHpPhase(getLifeStats().getHpPercentage());
+		hpPhases.tryEnterNextPhase(this);
 	}
 
 	@Override
 	public void handleHpPhase(int phaseHpPercent) {
 		switch (phaseHpPercent) {
-			case 15, 35, 55, 75, 95 -> {
-				if (isEventStarted.compareAndSet(false, true))
-					startSkillTask2();
-			}
+			case 100 -> startSkillTask1();
+			case 95 -> startSkillTask2();
 		}
 	}
 
@@ -88,13 +81,8 @@ public class RM1337AI extends AggressiveNpcAI implements HpPhases.PhaseHandler {
 			} else {
 				if (getOwner().getCastingSkill() != null)
 					return;
-				if (getLifeStats().getHpPercentage() <= 50)
-					switch (Rnd.nextInt(2)) {
-						case 0 -> getOwner().queueSkill(19550, 10, 0, NpcSkillTargetAttribute.RANDOM);
-						default -> getOwner().queueSkill(19552, 10, 0, NpcSkillTargetAttribute.RANDOM);
-					}
-				else
-					getOwner().queueSkill(19550, 10, 0, NpcSkillTargetAttribute.RANDOM);
+				int skillId = getLifeStats().getHpPercentage() > 50 || Rnd.nextBoolean() ? 19550 : 19552;
+				getOwner().queueSkill(skillId, 10, -1, NpcSkillTargetAttribute.RANDOM);
 			}
 		}, 10000, 23000);
 	}
@@ -106,7 +94,7 @@ public class RM1337AI extends AggressiveNpcAI implements HpPhases.PhaseHandler {
 			} else {
 				getOwner().getController().cancelCurrentSkill(null);
 				PacketSendUtility.broadcastMessage(getOwner(), 1500230);
-				getOwner().queueSkill(19551, 10, 0);
+				getOwner().queueSkill(19551, 10);
 				spawnSparks();
 			}
 		}, 0, 60000);

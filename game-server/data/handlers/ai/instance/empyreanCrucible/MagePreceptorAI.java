@@ -11,7 +11,6 @@ import com.aionemu.gameserver.world.WorldPosition;
 import ai.AggressiveNpcAI;
 
 /**
- * AI for Mage Preceptor in Empyrean Crucible
  * @author Luzien, w4terbomb
  */
 @AIName("mage_preceptor")
@@ -24,26 +23,26 @@ public class MagePreceptorAI extends AggressiveNpcAI implements HpPhases.PhaseHa
 	}
 
 	@Override
-	public void handleDespawned() {
+	protected void handleDespawned() {
 		despawnNpcs();
 		super.handleDespawned();
 	}
 
 	@Override
-	public void handleDied() {
+	protected void handleDied() {
 		despawnNpcs();
 		super.handleDied();
 	}
 
 	@Override
-	public void handleBackHome() {
+	protected void handleBackHome() {
 		despawnNpcs();
 		super.handleBackHome();
 		hpPhases.reset();
 	}
 
 	@Override
-	public void handleAttack(Creature creature) {
+	protected void handleAttack(Creature creature) {
 		super.handleAttack(creature);
 		hpPhases.tryEnterNextPhase(this);
 	}
@@ -51,57 +50,32 @@ public class MagePreceptorAI extends AggressiveNpcAI implements HpPhases.PhaseHa
 	@Override
 	public void handleHpPhase(int phaseHpPercent) {
 		switch (phaseHpPercent) {
-			case 75 -> queueSkill(19605, NpcSkillTargetAttribute.RANDOM);
-			case 50 -> handle50PercentPhase();
-			case 25 -> handle25PercentPhase();
-		}
-	}
-
-	private void handle50PercentPhase() {
-		queueSkill(19609, NpcSkillTargetAttribute.MOST_HATED);
-		scheduleTask(() -> {
-			if (!isDead()) {
-				queueSkill(19609, NpcSkillTargetAttribute.MOST_HATED);
-				scheduleTask(this::spawnNpcs, 4500);
+			case 75 -> getOwner().queueSkill(19605, 10, -1, NpcSkillTargetAttribute.RANDOM);
+			case 50 -> {
+				getOwner().queueSkill(19606, 10, 3000);
+				getOwner().queueSkill(19609, 10);
+				ThreadPoolManager.getInstance().schedule(this::spawnNpcs, 7500);
 			}
-		}, 3000);
-	}
-
-	private void handle25PercentPhase() {
-		queueSkill(19605, NpcSkillTargetAttribute.RANDOM);
-		scheduleRepeatedSkills(3000, 9000, 15000);
-	}
-
-	private void queueSkill(int skillId, NpcSkillTargetAttribute targetAttribute) {
-		getOwner().queueSkill(skillId, 10, 0, targetAttribute);
-	}
-
-	private void scheduleTask(Runnable task, int delay) {
-		ThreadPoolManager.getInstance().schedule(task, delay);
-	}
-
-	private void scheduleRepeatedSkills(int... delays) {
-		for (int delay : delays) {
-			scheduleTask(() -> queueSkill(19605, NpcSkillTargetAttribute.RANDOM), delay);
+			case 25 -> {
+				getOwner().queueSkill(19606, 10, 3000);
+				getOwner().queueSkill(19605, 10, 6000, NpcSkillTargetAttribute.RANDOM);
+				getOwner().queueSkill(19605, 10, 6000, NpcSkillTargetAttribute.RANDOM);
+				getOwner().queueSkill(19605, 10, -1, NpcSkillTargetAttribute.RANDOM);
+			}
 		}
 	}
 
 	private void spawnNpcs() {
+		if (isDead())
+			return;
 		WorldPosition p = getPosition();
 		spawn(282364, p.getX(), p.getY(), p.getZ(), p.getHeading());
 		spawn(282363, p.getX(), p.getY(), p.getZ(), p.getHeading());
-		scheduleTask(() -> queueSkill(19605, NpcSkillTargetAttribute.RANDOM), 2000);
+		ThreadPoolManager.getInstance().schedule(() -> getOwner().queueSkill(19605, 10, -1, NpcSkillTargetAttribute.RANDOM), 2000);
 	}
 
 	private void despawnNpcs() {
-		despawnNpc(282364);
-		despawnNpc(282363);
-	}
-
-	private void despawnNpc(int npcId) {
-		Npc npc = getPosition().getWorldMapInstance().getNpc(npcId);
-		if (npc != null) {
+		for (Npc npc : getPosition().getWorldMapInstance().getNpcs(282363, 282364))
 			npc.getController().delete();
-		}
 	}
 }

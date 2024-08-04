@@ -25,8 +25,8 @@ public class EmpyreanArbiterAI extends NpcAI {
 
 	@Override
 	protected void handleDialogStart(Player player) {
-		PacketSendUtility.sendPacket(player, player.getInventory().getFirstItemByItemId(186000124) != null ? new SM_DIALOG_WINDOW(getObjectId(), 1011)
-			: new SM_DIALOG_WINDOW(getObjectId(), 0));
+		int dialogId = player.getInventory().getFirstItemByItemId(186000124) == null ? 0 : 1011;
+		PacketSendUtility.sendPacket(player, new SM_DIALOG_WINDOW(getObjectId(), dialogId));
 	}
 
 	@Override
@@ -50,8 +50,7 @@ public class EmpyreanArbiterAI extends NpcAI {
 				}
 			}
 			PacketSendUtility.sendPacket(player, new SM_DIALOG_WINDOW(getObjectId(), 0));
-			getPosition().getWorldMapInstance().forEachPlayer(
-				p -> PacketSendUtility.sendPacket(p, SM_SYSTEM_MESSAGE.STR_MSG_FRIENDLY_MOVE_COMBATAREA_IDARENA(player.getName())));
+			PacketSendUtility.broadcastToMap(getOwner(), SM_SYSTEM_MESSAGE.STR_MSG_FRIENDLY_MOVE_COMBATAREA_IDARENA(player.getName()));
 		}
 		return true;
 	}

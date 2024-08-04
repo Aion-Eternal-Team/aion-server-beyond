@@ -1,5 +1,7 @@
 package ai.instance.empyreanCrucible;
 
+import java.util.concurrent.ScheduledFuture;
+
 import com.aionemu.gameserver.ai.AIName;
 import com.aionemu.gameserver.ai.HpPhases;
 import com.aionemu.gameserver.model.gameobjects.Creature;
@@ -16,9 +18,29 @@ import ai.AggressiveNpcAI;
 public class SpectralWarriorAI extends AggressiveNpcAI implements HpPhases.PhaseHandler {
 
 	private final HpPhases hpPhases = new HpPhases(50);
+	private ScheduledFuture<?> replaceSpawnsTask;
 
 	public SpectralWarriorAI(Npc owner) {
 		super(owner);
+	}
+
+	@Override
+	protected void handleDespawned() {
+		cancelTask();
+		super.handleDespawned();
+	}
+
+	@Override
+	protected void handleDied() {
+		cancelTask();
+		super.handleDied();
+	}
+
+	@Override
+	protected void handleBackHome() {
+		cancelTask();
+		super.handleBackHome();
+		hpPhases.reset();
 	}
 
 	@Override
@@ -30,7 +52,7 @@ public class SpectralWarriorAI extends AggressiveNpcAI implements HpPhases.Phase
 	@Override
 	public void handleHpPhase(int phaseHpPercent) {
 		getPosition().getWorldMapInstance().getInstanceHandler().onChangeStage(StageType.START_STAGE_6_ROUND_5);
-		ThreadPoolManager.getInstance().scheduleAtFixedRate(this::resurrectAllies, 0, 2000);
+		replaceSpawnsTask = ThreadPoolManager.getInstance().scheduleAtFixedRate(this::resurrectAllies, 0, 2000);
 	}
 
 	private void resurrectAllies() {
@@ -48,5 +70,11 @@ public class SpectralWarriorAI extends AggressiveNpcAI implements HpPhases.Phase
 				}
 			}
 		});
+	}
+
+	private void cancelTask() {
+		if (replaceSpawnsTask != null && !replaceSpawnsTask.isDone()) {
+			replaceSpawnsTask.cancel(true);
+		}
 	}
 }

@@ -27,7 +27,7 @@ public class SparkOfDarknessAI extends GeneralNpcAI {
 	private void startEventTask() {
 		ThreadPoolManager.getInstance().schedule(() -> {
 			if (!isDead())
-				getOwner().queueSkill(19554, 1, 0);
+				getOwner().queueSkill(19554, 1);
 		}, 500);
 	}
 

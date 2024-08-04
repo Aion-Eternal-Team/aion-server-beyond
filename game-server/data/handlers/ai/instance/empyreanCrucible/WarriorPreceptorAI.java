@@ -26,27 +26,27 @@ public class WarriorPreceptorAI extends AggressiveNpcAI {
 	}
 
 	@Override
-	public void handleDespawned() {
+	protected void handleDespawned() {
 		cancelTask();
 		super.handleDespawned();
 	}
 
 	@Override
-	public void handleDied() {
+	protected void handleDied() {
 		cancelTask();
 		PacketSendUtility.broadcastMessage(getOwner(), 1500208);
 		super.handleDied();
 	}
 
 	@Override
-	public void handleBackHome() {
+	protected void handleBackHome() {
 		cancelTask();
 		isHome.set(true);
 		super.handleBackHome();
 	}
 
 	@Override
-	public void handleAttack(Creature creature) {
+	protected void handleAttack(Creature creature) {
 		super.handleAttack(creature);
 		if (isHome.compareAndSet(true, false))
 			startSkillTask();
@@ -69,10 +69,7 @@ public class WarriorPreceptorAI extends AggressiveNpcAI {
 
 	private void startSkillEvent() {
 		PacketSendUtility.broadcastMessage(getOwner(), 1500207);
-		getOwner().queueSkill(19596, 15, 0, NpcSkillTargetAttribute.RANDOM);
-		ThreadPoolManager.getInstance().schedule(() -> {
-			if (!isDead())
-				getOwner().queueSkill(19596, 15, 0);
-		}, 6000);
+		getOwner().queueSkill(19595, 15, 6000, NpcSkillTargetAttribute.RANDOM);
+		getOwner().queueSkill(19596, 15);
 	}
 }

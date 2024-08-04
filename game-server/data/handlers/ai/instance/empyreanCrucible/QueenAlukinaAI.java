@@ -25,65 +25,64 @@ public class QueenAlukinaAI extends AggressiveNpcAI implements HpPhases.PhaseHan
 	}
 
 	@Override
-	public void handleDespawned() {
+	protected void handleDespawned() {
 		cancelTask();
 		super.handleDespawned();
 	}
 
 	@Override
-	public void handleDied() {
+	protected void handleDied() {
 		cancelTask();
 		super.handleDied();
 	}
 
 	@Override
-	public void handleBackHome() {
+	protected void handleBackHome() {
 		cancelTask();
 		super.handleBackHome();
 		hpPhases.reset();
 	}
 
 	@Override
-	public void handleAttack(Creature creature) {
+	protected void handleAttack(Creature creature) {
 		super.handleAttack(creature);
 		hpPhases.tryEnterNextPhase(this);
 	}
 
 	@Override
 	public void handleHpPhase(int phaseHpPercent) {
-		getOwner().queueSkill(17899, 41, 0);
+		getOwner().queueSkill(17899, 41, 4500);
 		switch (phaseHpPercent) {
 			case 75 -> {
-				scheduleSkill(17900, 4500);
+				getOwner().queueSkill(17900, 41);
 				PacketSendUtility.broadcastMessage(getOwner(), 340487, 10000);
-				scheduleSkill(17899, 14000);
-				scheduleSkill(17900, 18000);
+				ThreadPoolManager.getInstance().schedule(() -> {
+					if (getLifeStats().getHpPercentage() > 50) {
+						getOwner().queueSkill(17899, 41, 4000);
+						getOwner().queueSkill(17900, 41);
+					}
+				}, 14000);
 			}
 			case 50 -> {
-				scheduleSkill(17280, 4500);
-				scheduleSkill(17902, 8000);
+				getOwner().queueSkill(17280, 41, 3500);
+				getOwner().queueSkill(17902, 41);
 			}
-			case 25 -> task = ThreadPoolManager.getInstance().scheduleAtFixedRate(() -> {
-				if (isDead()) {
-					cancelTask();
-				} else {
-					getOwner().queueSkill(17901, 41, 0);
-					scheduleSkill(17902, 5500);
-					scheduleSkill(17902, 7500);
-				}
-			}, 4500, 20000);
+			case 25 -> {
+				task = ThreadPoolManager.getInstance().scheduleAtFixedRate(() -> {
+					if (isDead()) {
+						cancelTask();
+					} else {
+						getOwner().queueSkill(17901, 41, 5500);
+						getOwner().queueSkill(17902, 41, 2000);
+						getOwner().queueSkill(17902, 41);
+					}
+				}, 4500, 20000);
+			}
 		}
 	}
 
 	private void cancelTask() {
 		if (task != null && !task.isCancelled())
 			task.cancel(true);
-	}
-
-	private void scheduleSkill(final int skill, int delay) {
-		ThreadPoolManager.getInstance().schedule(() -> {
-			if (!isDead())
-				getOwner().queueSkill(skill, 41, 0);
-		}, delay);
 	}
 }

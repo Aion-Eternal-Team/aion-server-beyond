@@ -1,7 +1,5 @@
 package ai.instance.empyreanCrucible;
 
-import com.aionemu.gameserver.utils.ThreadPoolManager;
-
 import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -11,6 +9,7 @@ import com.aionemu.gameserver.ai.HpPhases;
 import com.aionemu.gameserver.controllers.attack.AggroInfo;
 import com.aionemu.gameserver.model.gameobjects.Creature;
 import com.aionemu.gameserver.model.gameobjects.Npc;
+import com.aionemu.gameserver.utils.ThreadPoolManager;
 
 import ai.AggressiveNpcAI;
 
@@ -30,20 +29,20 @@ public class KingConsierdAI extends AggressiveNpcAI implements HpPhases.PhaseHan
 	}
 
 	@Override
-	public void handleDespawned() {
+	protected void handleDespawned() {
 		cancelTasks();
 		super.handleDespawned();
 	}
 
 	@Override
-	public void handleDied() {
+	protected void handleDied() {
 		cancelTasks();
 		despawnNpcs(getPosition().getWorldMapInstance().getNpcs(282378));
 		super.handleDied();
 	}
 
 	@Override
-	public void handleBackHome() {
+	protected void handleBackHome() {
 		cancelTasks();
 		despawnNpcs(getPosition().getWorldMapInstance().getNpcs(282378));
 		super.handleBackHome();
@@ -51,7 +50,7 @@ public class KingConsierdAI extends AggressiveNpcAI implements HpPhases.PhaseHan
 	}
 
 	@Override
-	public void handleAttack(Creature creature) {
+	protected void handleAttack(Creature creature) {
 		super.handleAttack(creature);
 		hpPhases.tryEnterNextPhase(this);
 		if (isHome.compareAndSet(true, false)) {
@@ -62,8 +61,8 @@ public class KingConsierdAI extends AggressiveNpcAI implements HpPhases.PhaseHan
 
 	private void scheduleInitialSkills() {
 		ThreadPoolManager.getInstance().schedule(() -> {
-			getOwner().queueSkill(19691, 1, 0);
-			ThreadPoolManager.getInstance().schedule(() -> getOwner().queueSkill(17954, 29, 0), 4000);
+			getOwner().queueSkill(19691, 1, 4000);
+			getOwner().queueSkill(17954, 29);
 		}, 2000);
 	}
 
@@ -71,12 +70,12 @@ public class KingConsierdAI extends AggressiveNpcAI implements HpPhases.PhaseHan
 	public void handleHpPhase(int phaseHpPercent) {
 		switch (phaseHpPercent) {
 			case 75 -> startSkillTask();
-			case 25 -> getOwner().queueSkill(19690, 1, 0);
+			case 25 -> getOwner().queueSkill(19690, 1);
 		}
 	}
 
 	private void startBloodThirstTask() {
-		eventTask = ThreadPoolManager.getInstance().schedule(() -> getOwner().queueSkill(19624, 10, 0), 180000); // 3min, need confirm
+		eventTask = ThreadPoolManager.getInstance().schedule(() -> getOwner().queueSkill(19624, 10), 180000); // 3min, need confirm
 	}
 
 	private void startSkillTask() {
@@ -87,12 +86,12 @@ public class KingConsierdAI extends AggressiveNpcAI implements HpPhases.PhaseHan
 		if (isDead()) {
 			cancelTasks();
 		} else {
-			getOwner().queueSkill(17951, 29, 0);
+			getOwner().queueSkill(17951, 29);
 			ThreadPoolManager.getInstance().schedule(() -> {
 				dropAggro();
 				if (getLifeStats().getHpPercentage() <= 50)
 					spawnBabyConsierd();
-				ThreadPoolManager.getInstance().schedule(() -> getOwner().queueSkill(17952, 29, 0), 2000);
+				ThreadPoolManager.getInstance().schedule(() -> getOwner().queueSkill(17952, 29), 2000);
 			}, 3500);
 		}
 	}

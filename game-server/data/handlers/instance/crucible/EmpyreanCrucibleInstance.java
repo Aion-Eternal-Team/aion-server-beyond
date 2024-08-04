@@ -3,7 +3,6 @@ package instance.crucible;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.IntStream;
 
 import com.aionemu.commons.utils.Rnd;
 import com.aionemu.gameserver.instance.handlers.InstanceID;
@@ -34,7 +33,7 @@ import com.aionemu.gameserver.world.WorldMapInstance;
 public class EmpyreanCrucibleInstance extends CrucibleInstance {
 
 	private final List<Npc> npcs = new ArrayList<>();
-	private List<EmpyreanStage> empyreanStage = new ArrayList<>();
+	private final List<EmpyreanStage> empyreanStage = new ArrayList<>();
 	private byte stage;
 	private boolean isDoneStage4, isDoneStage6Round2, isDoneStage6Round1;
 
@@ -110,7 +109,7 @@ public class EmpyreanCrucibleInstance extends CrucibleInstance {
 			npcs.remove(npc);
 		}
 		EmpyreanStage es = getEmpyreanStage(npc);
-		int point = switch (npc.getNpcId()) {
+		int points = switch (npc.getNpcId()) {
 			case 217511, 217512, 217513, 217514 -> 55;
 			case 217515, 217516, 217517, 217518 -> 110;
 			case 217520, 217522, 217567 -> 210;
@@ -159,32 +158,31 @@ public class EmpyreanCrucibleInstance extends CrucibleInstance {
 			case 217609 -> 204400;
 			default -> 0;
 		};
-		if (point != 0) {
-			addPointsAndSendPacket(point, npc);
+		if (points != 0) {
+			addPointsAndSendPacket(points, npc);
 		}
 		switch (npc.getNpcId()) {
 			case 205396, 205405, 217477, 217486, 205399, 205408, 217480, 217489 -> {
 				npc.getController().delete();
-				if (stageType == StageType.START_STAGE_1_ROUND_1 && IntStream.of(205396, 205405, 217477, 217486, 205399, 205408, 217480, 217489).allMatch(
-					i -> getNpcs(i).isEmpty())) {
+				if (stageType == StageType.START_STAGE_1_ROUND_1 && instance.getNpcs(205396, 205405, 217477, 217486, 205399, 205408, 217480, 217489).isEmpty()) {
 					startStage1Round2();
 				}
 			}
 			case 217483, 217492 -> {
 				npc.getController().delete();
-				if (stageType == StageType.START_STAGE_1_ROUND_2 && IntStream.of(217483, 217492).allMatch(i -> getNpcs(i).isEmpty())) {
+				if (stageType == StageType.START_STAGE_1_ROUND_2 && instance.getNpcs(217483, 217492).isEmpty()) {
 					startStage1Round3();
 				}
 			}
 			case 217478, 217487 -> {
 				npc.getController().delete();
-				if (stageType == StageType.START_STAGE_1_ROUND_3 && IntStream.of(217478, 217487).allMatch(i -> getNpcs(i).isEmpty())) {
+				if (stageType == StageType.START_STAGE_1_ROUND_3 && instance.getNpcs(217478, 217487).isEmpty()) {
 					startStage1Round4();
 				}
 			}
 			case 217482, 217491 -> {
 				npc.getController().delete();
-				if (stageType == StageType.START_STAGE_1_ROUND_4 && IntStream.of(217482, 217491).allMatch(i -> getNpcs(i).isEmpty())) {
+				if (stageType == StageType.START_STAGE_1_ROUND_4 && instance.getNpcs(217482, 217491).isEmpty()) {
 					startStage1Round5();
 				}
 			}
@@ -204,29 +202,29 @@ public class EmpyreanCrucibleInstance extends CrucibleInstance {
 				npc.getController().delete();
 				switch (stageType) {
 					case START_STAGE_2_ROUND_1 -> {
-						if (IntStream.of(217503, 217504).allMatch(i -> getNpcs(i).isEmpty()))
+						if (instance.getNpcs(217503, 217504).isEmpty())
 							startStage2Round2();
 					}
 					case START_STAGE_2_ROUND_2 -> {
-						if (IntStream.of(217508, 217507, 217504).allMatch(i -> getNpcs(i).isEmpty()))
+						if (instance.getNpcs(217508, 217507, 217504).isEmpty())
 							startStage2Round3();
 					}
 				}
 			}
 			case 217503 -> {
 				npc.getController().delete();
-				if (stageType == StageType.START_STAGE_2_ROUND_1 && IntStream.of(217502, 217504).allMatch(i -> getNpcs(i).isEmpty()))
+				if (stageType == StageType.START_STAGE_2_ROUND_1 && instance.getNpcs(217502, 217504).isEmpty())
 					startStage2Round2();
 			}
 			case 217504 -> { // S2_RatmanScout_55_Ae
 				npc.getController().delete();
 				switch (stageType) {
 					case START_STAGE_2_ROUND_1 -> {
-						if (IntStream.of(217502, 217503).allMatch(i -> getNpcs(i).isEmpty()))
+						if (instance.getNpcs(217502, 217503).isEmpty())
 							startStage2Round2();
 					}
 					case START_STAGE_2_ROUND_2 -> {
-						if (IntStream.of(217502, 217507, 217508).allMatch(i -> getNpcs(i).isEmpty()))
+						if (instance.getNpcs(217502, 217507, 217508).isEmpty())
 							startStage2Round3();
 					}
 				}
@@ -235,7 +233,7 @@ public class EmpyreanCrucibleInstance extends CrucibleInstance {
 				npc.getController().delete();
 				switch (stageType) {
 					case START_STAGE_2_ROUND_2 -> {
-						if (IntStream.of(217502, 217504, 217508).allMatch(i -> getNpcs(i).isEmpty()))
+						if (instance.getNpcs(217502, 217504, 217508).isEmpty())
 							startStage2Round3();
 					}
 				}
@@ -250,7 +248,7 @@ public class EmpyreanCrucibleInstance extends CrucibleInstance {
 				}
 				switch (stageType) {
 					case START_STAGE_2_ROUND_2 -> {
-						if (IntStream.of(217502, 217504, 217507).allMatch(i -> getNpcs(i).isEmpty()))
+						if (instance.getNpcs(217502, 217504, 217507).isEmpty())
 							startStage2Round3();
 					}
 					case START_STAGE_2_ROUND_4 -> {
@@ -300,7 +298,7 @@ public class EmpyreanCrucibleInstance extends CrucibleInstance {
 			}
 			case 217511, 217512, 217513, 217514 -> {
 				npc.getController().delete();
-				if (IntStream.of(217511, 217512, 217513, 217514).allMatch(id -> getNpcs(id).isEmpty())) {
+				if (instance.getNpcs(217511, 217512, 217513, 217514).allMatch(id -> getNpcs(id).isEmpty())) {
 					setStage(StageType.START_STAGE_3_ROUND_2, 2000);
 					sp(217515, 336.32092f, 345.0251f, 96.090935f, (byte) 0, 6000); // S3_ElementalEarth_2nd_55_Ae
 					sp(217516, 347.16144f, 361.89084f, 96.09093f, (byte) 0, 6000); // S3_ElementalFire_2nd_55_Ae
@@ -318,7 +316,7 @@ public class EmpyreanCrucibleInstance extends CrucibleInstance {
 			}
 			case 217515, 217516, 217517, 217518 -> {
 				npc.getController().delete();
-				if (IntStream.of(217515, 217516, 217517, 217518).allMatch(i -> getNpcs(i).isEmpty())) {
+				if (instance.getNpcs(217515, 217516, 217517, 217518).isEmpty()) {
 					setStage(StageType.START_STAGE_3_ROUND_3, 2000);
 					sp(217519, 351.08026f, 341.61298f, 96.090935f, (byte) 0, 6000); // S3_ElementalEarth_3rd_55_Ae
 					sp(217521, 333.4532f, 354.7357f, 96.09094f, (byte) 0, 6000); // S3_ElementalWater_3rd_55_Ae
@@ -330,7 +328,7 @@ public class EmpyreanCrucibleInstance extends CrucibleInstance {
 			}
 			case 217519, 217520, 217521, 217522 -> {
 				npc.getController().delete();
-				if (IntStream.of(217519, 217520, 217521, 217522).allMatch(i -> getNpcs(i).isEmpty())) {
+				if (instance.getNpcs(217519, 217520, 217521, 217522).isEmpty()) {
 					setStage(StageType.START_STAGE_3_ROUND_4, 2000);
 					sp(217524, 349.66446f, 341.4752f, 96.090965f, (byte) 0, 6000); // S3_ElementalFire_4th_55_Ae
 					sp(217525, 338.32742f, 356.29636f, 96.090935f, (byte) 0, 6000); // S3_ElementalWater_4th_55_Ae
@@ -340,7 +338,7 @@ public class EmpyreanCrucibleInstance extends CrucibleInstance {
 			}
 			case 217523, 217524, 217525, 217526 -> {
 				npc.getController().delete();
-				if (IntStream.of(217523, 217524, 217525, 217526).allMatch(i -> getNpcs(i).isEmpty())) {
+				if (instance.getNpcs(217523, 217524, 217525, 217526).isEmpty()) {
 					setStage(StageType.START_STAGE_3_ROUND_5, 2000);
 					sp(217527, 335.37524f, 346.34567f, 96.09094f, (byte) 0, 6000); // S3_MagmaElemental_Boss_55_Ah
 					sp(217528, 335.36105f, 353.16922f, 96.09094f, (byte) 0, 6000); // S3_TempestElemental_Boss_55_Ah
@@ -348,7 +346,7 @@ public class EmpyreanCrucibleInstance extends CrucibleInstance {
 			}
 			case 217527, 217528 -> {
 				npc.getController().delete();
-				if (IntStream.of(217527, 217528).allMatch(id -> getNpcs(id).isEmpty())) {
+				if (instance.getNpcs(217527, 217528).allMatch(id -> getNpcs(id).isEmpty())) {
 					setStage(StageType.START_BONUS_STAGE_3, 7000);
 					sp(217744, 342.45215f, 349.339f, 96.09096f, (byte) 0, 7000); // S3_Elemeltal_CTRL
 					ThreadPoolManager.getInstance().schedule(this::startBonusStage3, 39000);
@@ -358,7 +356,7 @@ public class EmpyreanCrucibleInstance extends CrucibleInstance {
 				npc.getController().delete();
 				switch (stageType) {
 					case START_STAGE_4_ROUND_1 -> {
-						if (IntStream.of(217557, 217559, 217562).allMatch(id -> getNpcs(id).isEmpty())) {
+						if (instance.getNpcs(217557, 217559, 217562).allMatch(id -> getNpcs(id).isEmpty())) {
 							sp(217558, 330.27792f, 339.2779f, 96.09093f, (byte) 6); // S5_Lizard_As_55_Ae
 							sp(217558, 328.08972f, 346.3553f, 96.090904f, (byte) 1); // S5_Lizard_As_55_Ae
 						}
@@ -422,7 +420,7 @@ public class EmpyreanCrucibleInstance extends CrucibleInstance {
 			}
 			case 217651, 217652, 217653 -> {
 				npc.getController().delete();
-				if (isDoneStage4 && IntStream.of(217651, 217652, 217653).allMatch(id -> getNpcs(id).isEmpty())) {
+				if (isDoneStage4 && instance.getNpcs(217651, 217652, 217653).allMatch(id -> getNpcs(id).isEmpty())) {
 					setStage(StageType.PASS_GROUP_STAGE_4, 0);
 					sp(217749, 340.59f, 349.32166f, 96.09096f, (byte) 0, 6000); // S4_Draky_CTRL
 					setStage(StageType.START_BONUS_STAGE_4, 6000);
@@ -431,14 +429,14 @@ public class EmpyreanCrucibleInstance extends CrucibleInstance {
 			}
 			case 217547, 217548, 217549 -> {
 				npc.getController().delete();
-				if (IntStream.of(217547, 217548, 217549).allMatch(i -> getNpcs(i).isEmpty())) {
+				if (instance.getNpcs(217547, 217548, 217549).isEmpty()) {
 					sp(217550, 1266.293f, 778.3254f, 358.60574f, (byte) 30, 4000); // S4_ShulackPr_55_Ae
 					sp(217545, 1254.261f, 778.3817f, 358.6056f, (byte) 30, 4000); // S4_ShulackFi_55_Ae
 				}
 			}
 			case 217545, 217550 -> {
 				npc.getController().delete();
-				if (IntStream.of(217545, 217550).allMatch(i -> getNpcs(i).isEmpty())) {
+				if (instance.getNpcs(217545, 217550).isEmpty()) {
 					setStage(StageType.START_STAGE_5_ROUND_2, 2000);
 					sp(217552, 1246.0197f, 788.8341f, 358.60556f, (byte) 11, 6000); // S4_ShulackBartenderNmd_55_Ah
 				}
@@ -502,7 +500,7 @@ public class EmpyreanCrucibleInstance extends CrucibleInstance {
 			case 217569 -> {
 				sp(205414, npc.getX(), npc.getY(), npc.getZ(), npc.getHeading());
 				npc.getController().delete();
-				if (stageType == StageType.START_STAGE_6_ROUND_2 && isDoneStage6Round2 && IntStream.of(217569, 217570).allMatch(i -> getNpcs(i).isEmpty())) {
+				if (stageType == StageType.START_STAGE_6_ROUND_2 && isDoneStage6Round2 && instance.getNpcs(217569, 217570).isEmpty()) {
 					setStage(StageType.START_STAGE_6_ROUND_3, 2000);
 					sp(217572, 1629.5837f, 138.38435f, 126f, (byte) 30, 9000); // S6_DeathNight_Live_55_Ah
 					sp(217569, 1635.01535f, 150.01535f, 126f, (byte) 45, 6000); // S6_LichEquip_55_Ae
@@ -590,7 +588,7 @@ public class EmpyreanCrucibleInstance extends CrucibleInstance {
 				if (counterpart != null && !counterpart.isDead())
 					SkillEngine.getInstance().getSkill(counterpart, 19624, 10, counterpart).useNoAnimationSkill();
 				npc.getController().delete();
-				if (IntStream.of(217596, 217597).allMatch(i -> getNpcs(i).isEmpty())) {
+				if (instance.getNpcs(217596, 217597).isEmpty()) {
 					setStage(StageType.START_STAGE_9_ROUND_4, 2000);
 					sp(217598, 1311.5238f, 1755.2079f, 317.1f, (byte) 97, 2000); // S9_Shellizard_Gi_55_Ah
 				}
@@ -607,7 +605,7 @@ public class EmpyreanCrucibleInstance extends CrucibleInstance {
 			}
 			case 217600, 217601, 217602 -> {
 				npc.getController().delete();
-				if (IntStream.of(217600, 217601, 217602).allMatch(i -> getNpcs(i).isEmpty())) {
+				if (instance.getNpcs(217600, 217601, 217602).isEmpty()) {
 					setStage(StageType.START_STAGE_10_ROUND_2, 2000);
 					sp(217603, 1744.6332f, 1280.0349f, 394.3f, (byte) 9, 2000); // S10_Drakan_Fi_High_55_Ae
 					sp(217604, 1756.2661f, 1305.561f, 394.3f, (byte) 97, 6000); // S10_Drakan_Sc_High_55_Ae
@@ -617,7 +615,7 @@ public class EmpyreanCrucibleInstance extends CrucibleInstance {
 			}
 			case 217603, 217604, 217605, 217606 -> {
 				npc.getController().delete();
-				if (IntStream.of(217603, 217604, 217605, 217606).allMatch(i -> getNpcs(i).isEmpty())) {
+				if (instance.getNpcs(217603, 217604, 217605, 217606).isEmpty()) {
 					setStage(StageType.START_STAGE_10_ROUND_3, 2000);
 					sp(700441, 1742.39f, 1289.59f, 394.237f, (byte) 68, 2000); // BIDLF1_WaterGolem1_Switch3_50_n
 					sp(700441, 1782.32f, 1272.74f, 394.237f, (byte) 94, 2000); // BIDLF1_WaterGolem1_Switch3_50_n
@@ -741,13 +739,13 @@ public class EmpyreanCrucibleInstance extends CrucibleInstance {
 
 	private void startStage2Round3() {
 		setStage(StageType.START_STAGE_2_ROUND_3, 2000);
-		sp(Rnd.get(1, 2) == 1 ? 217500 : 217509, 332.0035f, 349.55893f, 96.09093f, (byte) 0,
+		sp(Rnd.nextBoolean() ? 217500 : 217509, 332.0035f, 349.55893f, 96.09093f, (byte) 0,
 			6000); // S2_KrallScout_MidBoss_55_Ah, S2_LycanRanger_Named_55_Ah
 	}
 
 	private void startStage2Round5() {
 		setStage(StageType.START_STAGE_2_ROUND_5, 2000);
-		sp(Rnd.get(1, 2) == 1 ? 217510 : 217501, 332.0035f, 349.55893f, 96.09093f, (byte) 0,
+		sp(Rnd.nextBoolean() ? 217510 : 217501, 332.0035f, 349.55893f, 96.09093f, (byte) 0,
 			6000); // S2_LycanWizard_Boss_55_Ah, S2_KrallWarrior_Boss_55_Ah
 	}
 
@@ -839,8 +837,6 @@ public class EmpyreanCrucibleInstance extends CrucibleInstance {
 						sp(217477, 327.73657f, 347.96228f, 96.09092f, (byte) 0, 9000); // S1_TempleL_Kn_55_Ae
 						sp(217480, 327.81943f, 350.948f, 96.09093f, (byte) 0, 9000); // S1_TempleL_Wi_55_Ae
 					}
-					default -> {
-					}
 				}
 				ThreadPoolManager.getInstance().schedule(() -> {
 					if (!isSpawn(round)) {
@@ -920,13 +916,11 @@ public class EmpyreanCrucibleInstance extends CrucibleInstance {
 				switch (race) {
 					case ASMODIANS -> sp(217582, 1783.0873f, 796.8426f, 469.35013f, (byte) 0, 6000); // S7_MasterD_Wa_55_Ah
 					case ELYOS -> sp(217578, 1783.0873f, 796.8426f, 469.35013f, (byte) 0, 6000); // S7_MasterL_Wa_55_Ah
-					default -> {
-					}
 				}
 			}
 			case START_STAGE_8_ROUND_1 -> {
 				setStage(type, 2000);
-				sp(Rnd.get(1, 2) == 1 ? 217588 : 217589, 1776.578f, 1773.231f, 303.695f, (byte) 90, 6000); // S8_Cromede_55_Ah, S8_Cromede_Hard_55_Ah
+				sp(Rnd.nextBoolean() ? 217588 : 217589, 1776.578f, 1773.231f, 303.695f, (byte) 90, 6000); // S8_Cromede_55_Ah, S8_Cromede_Hard_55_Ah
 			}
 			case START_STAGE_9_ROUND_1 -> {
 				setStage(type, 2000);
@@ -996,8 +990,6 @@ public class EmpyreanCrucibleInstance extends CrucibleInstance {
 				round.add(217483);
 				sp(217483, 332.7714f, 358.48206f, 96.09092f, (byte) 106, 6000); // S1_TempleL_Ch_55_Ae
 			}
-			default -> {
-			}
 		}
 		ThreadPoolManager.getInstance().schedule(() -> {
 			if (!isSpawn(round))
@@ -1018,8 +1010,6 @@ public class EmpyreanCrucibleInstance extends CrucibleInstance {
 			case ELYOS -> {
 				round.add(217478);
 				sp(217478, 334.844f, 339.92618f, 96.09094f, (byte) 106, 6000); // S1_TempleL_As_55_Ae
-			}
-			default -> {
 			}
 		}
 		ThreadPoolManager.getInstance().schedule(() -> {
@@ -1042,8 +1032,6 @@ public class EmpyreanCrucibleInstance extends CrucibleInstance {
 				round.add(217482);
 				sp(217482, 341.03156f, 361.04315f, 96.09093f, (byte) 106, 6000); // S1_TempleL_Pr_55_Ae
 			}
-			default -> {
-			}
 		}
 		ThreadPoolManager.getInstance().schedule(() -> {
 			if (!isSpawn(round))
@@ -1058,8 +1046,6 @@ public class EmpyreanCrucibleInstance extends CrucibleInstance {
 		switch (race) {
 			case ASMODIANS -> sp(217493, 332.093f, 349.36847f, 96.090935f, (byte) 119, 6000); // S1_TempleD_Fi_Boss_55_Ah
 			case ELYOS -> sp(217484, 332.093f, 349.36847f, 96.090935f, (byte) 119, 6000); // S1_TempleL_Fi_Boss_55_Ah
-			default -> {
-			}
 		}
 	}
 

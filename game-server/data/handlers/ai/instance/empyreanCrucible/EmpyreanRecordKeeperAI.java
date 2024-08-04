@@ -25,13 +25,7 @@ public class EmpyreanRecordKeeperAI extends NpcAI {
 	@Override
 	public void handleSpawned() {
 		super.handleSpawned();
-		int msg = getNpcIdMessage(getNpcId());
-		if (msg != 0)
-			PacketSendUtility.broadcastMessage(getOwner(), msg, 1000);
-	}
-
-	private int getNpcIdMessage(int npcId) {
-		return switch (npcId) {
+		int msg = switch (getNpcId()) {
 			case 799568 -> 1111460;
 			case 799569 -> 1111461;
 			case 205331 -> 1111462;
@@ -45,6 +39,8 @@ public class EmpyreanRecordKeeperAI extends NpcAI {
 			case 205344 -> 1111469;
 			default -> 0;
 		};
+		if (msg != 0)
+			PacketSendUtility.broadcastMessage(getOwner(), msg, 1000);
 	}
 
 	@Override
