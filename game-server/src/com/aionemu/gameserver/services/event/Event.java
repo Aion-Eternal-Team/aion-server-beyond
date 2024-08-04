@@ -1,6 +1,5 @@
 package com.aionemu.gameserver.services.event;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -79,15 +78,8 @@ public class Event {
 	public void start() {
 		if (!started.compareAndSet(false, true))
 			return;
-		if (eventTemplate.hasConfigProperties()) {
-			try {
-				Config.load(eventTemplate.loadConfigProperties());
-			} catch (IOException e) {
-				log.error("Could not load config properties of event " + getEventTemplate().getName(), e);
-				started.compareAndSet(true, false);
-				return;
-			}
-		}
+		if (eventTemplate.hasConfigProperties())
+			Config.load();
 		if (eventTemplate.getSpawns() != null && eventTemplate.getSpawns().size() > 0) {
 			for (SpawnMap map : eventTemplate.getSpawns().getTemplates()) {
 				DataManager.SPAWNS_DATA.addNewSpawnMap(map);

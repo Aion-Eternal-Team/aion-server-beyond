@@ -125,10 +125,11 @@ public class CM_LEGION extends AionClientPacket {
 						LegionService.getInstance().leaveLegion(activePlayer, false);
 						break;
 					case 0x07: // show legion notice (from /gnotice chat command)
-						if (legion.getCurrentAnnouncement() == null)
+						Legion.Announcement currentAnnouncement = legion.getAnnouncement();
+						if (currentAnnouncement == null)
 							sendPacket(SM_SYSTEM_MESSAGE.STR_MSG_NOSET_GUILD_NOTICE());
 						else
-							sendPacket(SM_SYSTEM_MESSAGE.STR_GUILD_NOTICE(legion.getCurrentAnnouncement().getValue(), (int) (legion.getCurrentAnnouncement().getKey().getTime() / 1000)));
+							sendPacket(SM_SYSTEM_MESSAGE.STR_GUILD_NOTICE(currentAnnouncement.message(), currentAnnouncement.time().getTime() / 1000));
 						break;
 					case 0x08: // refresh legion info
 						sendPacket(new SM_LEGION_INFO(legion));

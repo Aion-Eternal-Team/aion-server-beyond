@@ -1,7 +1,6 @@
 package com.aionemu.gameserver.dao;
 
 import java.sql.*;
-import java.util.TreeMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,8 +31,8 @@ public class LegionDAO {
 	private static final String UPDATE_LEGION_QUERY = "UPDATE legions SET name=?, level=?, contribution_points=?, deputy_permission=?, centurion_permission=?, legionary_permission=?, volunteer_permission=?, disband_time=?, occupied_legion_dominion=?, last_legion_dominion=?, current_legion_dominion=? WHERE id=?";
 	/** Announcement Queries **/
 	private static final String INSERT_ANNOUNCEMENT_QUERY = "INSERT INTO legion_announcement_list(`legion_id`, `announcement`, `date`) VALUES (?, ?, ?)";
-	private static final String SELECT_ANNOUNCEMENTLIST_QUERY = "SELECT * FROM legion_announcement_list WHERE legion_id=? ORDER BY date ASC LIMIT 0,7;";
-	private static final String DELETE_ANNOUNCEMENT_QUERY = "DELETE FROM legion_announcement_list WHERE legion_id = ? AND date = ?";
+	private static final String SELECT_ANNOUNCEMENT_QUERY = "SELECT * FROM legion_announcement_list WHERE legion_id = ? ORDER BY date DESC LIMIT 1";
+	private static final String DELETE_ANNOUNCEMENT_QUERY = "DELETE FROM legion_announcement_list WHERE legion_id = ?";
 	/** Emblem Queries **/
 	private static final String INSERT_EMBLEM_QUERY = "INSERT INTO legion_emblems(legion_id, emblem_id, color_a, color_r, color_g, color_b, emblem_type, emblem_data) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 	private static final String UPDATE_EMBLEM_QUERY = "UPDATE legion_emblems SET emblem_id=?, color_a=?, color_r=?, color_g=?, color_b=?, emblem_type=?, emblem_data=? WHERE legion_id=?";
@@ -192,53 +191,37 @@ public class LegionDAO {
 		}
 	}
 
-	public static TreeMap<Timestamp, String> loadAnnouncementList(int legionId) {
-		TreeMap<Timestamp, String> announcementList = new TreeMap<>();
-
-		boolean success = DB.select(SELECT_ANNOUNCEMENTLIST_QUERY, new ParamReadStH() {
-
-			@Override
-			public void setParams(PreparedStatement stmt) throws SQLException {
-				stmt.setInt(1, legionId);
+	public static Legion.Announcement loadAnnouncement(int legionId) {
+		Legion.Announcement announcement = null;
+		try (Connection con = DatabaseFactory.getConnection(); PreparedStatement stmt = con.prepareStatement(SELECT_ANNOUNCEMENT_QUERY)) {
+			stmt.setInt(1, legionId);
+			ResultSet resultSet = stmt.executeQuery();
+			if (resultSet.next()) {
+				String message = resultSet.getString("announcement");
+				Timestamp date = resultSet.getTimestamp("date");
+				announcement = new Legion.Announcement(message, date);
 			}
+		} catch (SQLException e) {
+			log.error("Couldn't load legion announcements for legion " + legionId, e);
+		}
+		return announcement;
+	}
 
-			@Override
-			public void handleRead(ResultSet resultSet) throws SQLException {
-				while (resultSet.next()) {
-					String message = resultSet.getString("announcement");
-					Timestamp date = resultSet.getTimestamp("date");
-
-					announcementList.put(date, message);
+	public static void saveAnnouncement(int legionId, Legion.Announcement announcement) {
+		try (Connection con = DatabaseFactory.getConnection(); PreparedStatement delete = con.prepareStatement(DELETE_ANNOUNCEMENT_QUERY)) {
+			delete.setInt(1, legionId);
+			delete.executeUpdate();
+			if (announcement != null) {
+				try (PreparedStatement insert = con.prepareStatement(INSERT_ANNOUNCEMENT_QUERY)) {
+					insert.setInt(1, legionId);
+					insert.setString(2, announcement.message());
+					insert.setTimestamp(3, announcement.time());
+					insert.executeUpdate();
 				}
 			}
-		});
-
-		return success ? announcementList : null;
-	}
-
-	public static boolean saveNewAnnouncement(int legionId, Timestamp currentTime, String message) {
-		boolean success = DB.insertUpdate(INSERT_ANNOUNCEMENT_QUERY, new IUStH() {
-
-			@Override
-			public void handleInsertUpdate(PreparedStatement preparedStatement) throws SQLException {
-				preparedStatement.setInt(1, legionId);
-				preparedStatement.setString(2, message);
-				preparedStatement.setTimestamp(3, currentTime);
-				preparedStatement.execute();
-			}
-		});
-		return success;
-	}
-
-	public static void removeAnnouncement(int legionId, Timestamp unixTime) {
-		PreparedStatement statement = DB.prepareStatement(DELETE_ANNOUNCEMENT_QUERY);
-		try {
-			statement.setInt(1, legionId);
-			statement.setTimestamp(2, unixTime);
 		} catch (SQLException e) {
-			log.error("Some crap, can't set int parameter to PreparedStatement", e);
+			log.error("Couldn't save announcement for legion " + legionId + ": " + announcement, e);
 		}
-		DB.executeUpdateAndClose(statement);
 	}
 
 	public static void storeLegionEmblem(int legionId, LegionEmblem legionEmblem) {

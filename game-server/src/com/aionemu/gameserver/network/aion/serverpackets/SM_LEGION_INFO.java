@@ -1,8 +1,5 @@
 package com.aionemu.gameserver.network.aion.serverpackets;
 
-import java.sql.Timestamp;
-import java.util.Map;
-
 import com.aionemu.gameserver.model.team.legion.Legion;
 import com.aionemu.gameserver.network.aion.AionConnection;
 import com.aionemu.gameserver.network.aion.AionServerPacket;
@@ -35,14 +32,8 @@ public class SM_LEGION_INFO extends AionServerPacket {
 		writeD(legion.getOccupiedLegionDominion());
 		writeD(legion.getLastLegionDominion());
 		writeD(legion.getCurrentLegionDominion());
-		Map<Timestamp, String> announcementList = legion.getAnnouncementList().descendingMap();
-		// Show max 7 announcements
-		int i = 0;
-		for (Timestamp unixTime : announcementList.keySet()) {
-			writeS(announcementList.get(unixTime));
-			writeD((int) (unixTime.getTime() / 1000));
-			if (++i >= 7)
-				break;
-		}
+		Legion.Announcement announcement = legion.getAnnouncement();
+		writeS(announcement == null ? null : announcement.message());
+		writeD(announcement == null ? 0 : (int) (announcement.time().getTime() / 1000));
 	}
 }

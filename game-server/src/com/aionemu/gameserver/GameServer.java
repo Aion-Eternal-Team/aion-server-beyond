@@ -234,7 +234,7 @@ public class GameServer {
 		AbyssRankingCache.getInstance();
 		AbyssRankUpdateService.scheduleUpdate();
 		PeriodicInstanceManager.getInstance();
-		EventService.getInstance();
+		EventService.getInstance().start();
 
 		AdminService.getInstance();
 		CommandsAccessService.loadAccesses();

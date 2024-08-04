@@ -28,12 +28,6 @@ public class LegionConfig {
 	public static Pattern NICKNAME_PATTERN;
 
 	/**
-	 * Announcement pattern (checked when announcement is being created)
-	 */
-	@Property(key = "gameserver.legion.announcementpattern", defaultValue = ".{1,256}")
-	public static Pattern ANNOUNCEMENT_PATTERN;
-
-	/**
 	 * Sets disband legion time
 	 */
 	@Property(key = "gameserver.legion.disbandtime", defaultValue = "86400")

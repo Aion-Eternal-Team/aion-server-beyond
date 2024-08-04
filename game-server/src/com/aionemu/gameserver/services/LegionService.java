@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
@@ -163,20 +162,11 @@ public class LegionService {
 	}
 
 	private void loadLegionInfo(Legion legion) {
-		// Load and add the legion members to legion
 		legion.setLegionMembers(LegionMemberDAO.loadLegionMembers(legion.getLegionId()));
-
-		// Load and set the announcement list
-		legion.setAnnouncementList(LegionDAO.loadAnnouncementList(legion.getLegionId()));
-
-		// Load legion emblem
+		legion.setAnnouncement(LegionDAO.loadAnnouncement(legion.getLegionId()));
 		legion.setLegionEmblem(LegionDAO.loadLegionEmblem(legion.getLegionId()));
-
-		// Load Legion Warehouse
 		legion.setLegionWarehouse(LegionDAO.loadLegionStorage(legion));
 		ItemService.loadItemStones(legion.getLegionWarehouse().getItems());
-
-		// Load Legion History
 		LegionDAO.loadLegionHistory(legion);
 	}
 
@@ -266,26 +256,13 @@ public class LegionService {
 
 	public void createLegion(Player activePlayer, String legionName) {
 		if (legionRestrictions.canCreateLegion(activePlayer, legionName)) {
-			/**
-			 * Create new legion and put originator as first member
-			 */
 			Legion legion = new Legion(IDFactory.getInstance().nextId(), legionName);
 			legion.addLegionMember(activePlayer.getObjectId());
 
 			activePlayer.getInventory().decreaseKinah(LegionConfig.LEGION_CREATE_REQUIRED_KINAH);
 
-			/**
-			 * Create a LegionMember, add it to the legion and bind it to a Player
-			 */
 			storeLegion(legion, true);
-			Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-			storeNewAnnouncement(legion.getLegionId(), currentTime, "");
-			legion.addAnnouncementToList(currentTime, "");
 			addLegionMember(legion, activePlayer, LegionRank.BRIGADE_GENERAL);
-			PacketSendUtility.broadcastToLegion(legion, new SM_LEGION_EDIT(0x05, (int) (System.currentTimeMillis() / 1000), ""));
-			/**
-			 * Add create and joined legion history and save it
-			 */
 			addHistory(legion, "", LegionHistoryType.CREATE);
 			addHistory(legion, activePlayer.getName(), LegionHistoryType.JOIN);
 
@@ -300,7 +277,7 @@ public class LegionService {
 			addLegionMember(legion, invited);
 
 			// Display current announcement
-			displayLegionMessage(invited, legion.getCurrentAnnouncement());
+			displayLegionAnnouncement(invited, legion.getAnnouncement());
 
 			// Add to history of legion
 			addHistory(legion, invited.getName(), LegionHistoryType.JOIN);
@@ -344,11 +321,9 @@ public class LegionService {
 	/**
 	 * Displays current legion announcement
 	 */
-	private void displayLegionMessage(Player targetPlayer, Entry<Timestamp, String> currentAnnouncement) {
-		if (currentAnnouncement != null) {
-			PacketSendUtility.sendPacket(targetPlayer,
-				SM_SYSTEM_MESSAGE.STR_GUILD_NOTICE(currentAnnouncement.getValue(), (int) (currentAnnouncement.getKey().getTime() / 1000)));
-		}
+	private void displayLegionAnnouncement(Player targetPlayer, Legion.Announcement announcement) {
+		if (announcement != null)
+			PacketSendUtility.sendPacket(targetPlayer, SM_SYSTEM_MESSAGE.STR_GUILD_NOTICE(announcement.message(), announcement.time().getTime() / 1000));
 	}
 
 	private void startBrigadeGeneralChangeProcess(Player legionLeader, Player newLegionLeader) {
@@ -768,31 +743,28 @@ public class LegionService {
 	/**
 	 * This will add a new announcement to the DB and change the current announcement
 	 */
-	public void changeAnnouncement(Player activePlayer, String announcement) {
-		if (legionRestrictions.canChangeAnnouncement(activePlayer.getLegionMember(), announcement)) {
-			Legion legion = activePlayer.getLegion();
-
-			Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-			storeNewAnnouncement(legion.getLegionId(), currentTime, announcement);
-			legion.addAnnouncementToList(currentTime, announcement);
+	public void changeAnnouncement(Player activePlayer, String message) {
+		if (!activePlayer.getLegionMember().hasRights(LegionPermissionsMask.EDIT)) {
+			PacketSendUtility.sendPacket(activePlayer, SM_SYSTEM_MESSAGE.STR_GUILD_WRITE_NOTICE_DONT_HAVE_RIGHT());
+			return;
+		}
+		Legion legion = activePlayer.getLegion();
+		Legion.Announcement announcement = null;
+		if (!message.isEmpty()) {
+			if (message.length() > 256) {
+				log.warn("Truncated legion announcement sent by " + activePlayer + " (old length: " + message.length() + ")");
+				message = message.substring(0, 256);
+			}
+			announcement = new Legion.Announcement(message, new Timestamp(System.currentTimeMillis()));
+		}
+		legion.setAnnouncement(announcement);
+		LegionDAO.saveAnnouncement(legion.getLegionId(), announcement);
+		if (announcement == null) {
+			PacketSendUtility.sendPacket(activePlayer, SM_SYSTEM_MESSAGE.STR_MSG_CLEAR_GUILD_NOTICE());
+		} else {
 			PacketSendUtility.sendPacket(activePlayer, SM_SYSTEM_MESSAGE.STR_GUILD_WRITE_NOTICE_DONE());
-			PacketSendUtility.broadcastToLegion(legion, new SM_LEGION_EDIT(0x05, (int) (System.currentTimeMillis() / 1000), announcement));
+			PacketSendUtility.broadcastToLegion(legion, new SM_LEGION_EDIT(announcement));
 		}
-	}
-
-	private void storeLegionAnnouncements(Legion legion) {
-		for (int i = 0; i < (legion.getAnnouncementList().size() - 7); i++) {
-			removeAnnouncement(legion.getLegionId(), legion.getAnnouncementList().firstEntry().getKey());
-			legion.removeFirstEntry();
-		}
-	}
-
-	private boolean storeNewAnnouncement(int legionId, Timestamp currentTime, String message) {
-		return LegionDAO.saveNewAnnouncement(legionId, currentTime, message);
-	}
-
-	private void removeAnnouncement(int legionId, Timestamp key) {
-		LegionDAO.removeAnnouncement(legionId, key);
 	}
 
 	private void addHistory(Legion legion, String text, LegionHistoryType legionHistoryType) {
@@ -952,7 +924,7 @@ public class LegionService {
 		updateLegionMemberList(activePlayer, false);
 
 		// Send current announcement to player
-		displayLegionMessage(activePlayer, legion.getCurrentAnnouncement());
+		displayLegionAnnouncement(activePlayer, legion.getAnnouncement());
 
 		if (legion.isDisbanding())
 			PacketSendUtility.sendPacket(activePlayer, new SM_LEGION_EDIT(0x06, legion.getDisbandTime()));
@@ -972,7 +944,6 @@ public class LegionService {
 		storeLegion(legion);
 		storeLegionMember(player.getLegionMember());
 		storeLegionMemberExInCache(player);
-		storeLegionAnnouncements(legion);
 		legion.decreaseOnlineMembersCount();
 		legion.removeBonus();
 	}
@@ -1130,10 +1101,6 @@ public class LegionService {
 			return isValidNickname(newNickname) && legion.isMember(targetObjectId);
 		}
 
-		private boolean canChangeAnnouncement(LegionMember legionMember, String announcement) {
-			return legionMember.hasRights(LegionPermissionsMask.EDIT) && (announcement.isEmpty() || isValidAnnouncement(announcement));
-		}
-
 		private boolean canDisbandLegion(Player activePlayer) {
 			Legion legion = activePlayer.getLegion();
 			if (legion == null) {
@@ -1248,10 +1215,6 @@ public class LegionService {
 
 		private boolean isValidNickname(String name) {
 			return LegionConfig.NICKNAME_PATTERN.matcher(name).matches();
-		}
-
-		private boolean isValidAnnouncement(String name) {
-			return LegionConfig.ANNOUNCEMENT_PATTERN.matcher(name.replaceAll("\\r\\n", "")).matches();
 		}
 	}
 

@@ -24,6 +24,7 @@ import com.aionemu.gameserver.configs.administration.CommandsConfig;
 import com.aionemu.gameserver.configs.main.*;
 import com.aionemu.gameserver.configs.network.NetworkConfig;
 import com.aionemu.gameserver.configs.network.PffConfig;
+import com.aionemu.gameserver.services.event.EventService;
 
 import ch.qos.logback.classic.ClassicConstants;
 
@@ -43,14 +44,8 @@ public class Config {
 	 * Load configs of the given classes or all if allowedConfigs is empty.
 	 */
 	public static void load(Class<?>... allowedConfigs) {
-		load(null, allowedConfigs);
-	}
-
-	public static void load(Properties overrideProperties, Class<?>... allowedConfigs) {
 		Properties properties = loadProperties();
-		if (overrideProperties != null) {
-			properties.putAll(overrideProperties);
-		}
+		properties.putAll(EventService.getInstance().getActiveEventConfigProperties());
 		for (Class<?> config : allowedConfigs) {
 			if (!CONFIGS.contains(config))
 				throw new IllegalArgumentException(config + " is not an allowed config");

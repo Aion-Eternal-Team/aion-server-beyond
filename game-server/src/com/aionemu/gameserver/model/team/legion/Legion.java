@@ -1,8 +1,10 @@
 package com.aionemu.gameserver.model.team.legion;
 
 import java.sql.Timestamp;
-import java.util.*;
-import java.util.Map.Entry;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -29,7 +31,7 @@ public class Legion extends AionObject {
 	private short legionaryPermission = 0x1800;
 	private short volunteerPermission = 0x800;
 	private int disbandTime;
-	private TreeMap<Timestamp, String> announcementList = new TreeMap<>();
+	private Announcement announcement;
 	private LegionEmblem legionEmblem = new LegionEmblem();
 	private LegionWarehouse legionWarehouse;
 	private final List<LegionHistory> legionHistory = new ArrayList<>();
@@ -316,42 +318,12 @@ public class Legion extends AionObject {
 		return false;
 	}
 
-	/**
-	 * @param announcementList
-	 *          the announcementList to set
-	 */
-	public void setAnnouncementList(TreeMap<Timestamp, String> announcementList) {
-		this.announcementList = announcementList;
+	public Announcement getAnnouncement() {
+		return announcement;
 	}
 
-	/**
-	 * This method will add a new announcement to the list
-	 */
-	public void addAnnouncementToList(Timestamp unixTime, String announcement) {
-		this.announcementList.put(unixTime, announcement);
-	}
-
-	/**
-	 * This method removes the first entry
-	 */
-	public void removeFirstEntry() {
-		this.announcementList.remove(this.announcementList.firstEntry().getKey());
-	}
-
-	/**
-	 * @return the announcementList
-	 */
-	public TreeMap<Timestamp, String> getAnnouncementList() {
-		return this.announcementList;
-	}
-
-	/**
-	 * @return the currentAnnouncement
-	 */
-	public Entry<Timestamp, String> getCurrentAnnouncement() {
-		if (this.announcementList.size() > 0)
-			return this.announcementList.lastEntry();
-		return null;
+	public void setAnnouncement(Announcement announcement) {
+		this.announcement = announcement;
 	}
 
 	/**
@@ -521,4 +493,6 @@ public class Legion extends AionObject {
 	public String toString() {
 		return "Legion [id=" + getObjectId() + ", name=" + getName() + "]";
 	}
+
+	public record Announcement(String message, Timestamp time) {}
 }

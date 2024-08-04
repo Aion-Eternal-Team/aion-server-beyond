@@ -40,7 +40,6 @@ public class EventService {
 	private volatile EventTheme eventTheme = EventTheme.NONE;
 
 	private EventService() {
-		start();
 	}
 
 	public boolean start() {
@@ -187,6 +186,22 @@ public class EventService {
 
 	public boolean isActiveEventQuest(int questId) {
 		return activeEventQuests.contains(questId);
+	}
+
+	public Properties getActiveEventConfigProperties() {
+		Properties eventConfigProperties = new Properties();
+		activeEvents.stream()
+			.map(Event::getEventTemplate)
+			.filter(EventTemplate::hasConfigProperties)
+			.sorted(Comparator.nullsFirst(Comparator.comparing(EventTemplate::getStartDate)))
+			.forEach(et -> {
+				try {
+					eventConfigProperties.putAll(et.loadConfigProperties());
+				} catch (Exception e) {
+					log.error("Could not load config properties of event " + et.getName(), e);
+				}
+			});
+		return eventConfigProperties;
 	}
 
 	private void updateEventTheme() {

@@ -29,10 +29,10 @@ public class SM_LEGION_EDIT extends AionServerPacket {
 		this.unixTime = unixTime;
 	}
 
-	public SM_LEGION_EDIT(int type, int unixTime, String announcement) {
-		this.type = type;
-		this.announcement = announcement;
-		this.unixTime = unixTime;
+	public SM_LEGION_EDIT(Legion.Announcement announcement) {
+		this.type = 0x05;
+		this.announcement = announcement.message();
+		this.unixTime = (int) (announcement.time().getTime() / 1000);
 	}
 
 	@Override
