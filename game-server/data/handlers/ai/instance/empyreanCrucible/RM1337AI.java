@@ -63,7 +63,7 @@ public class RM1337AI extends AggressiveNpcAI implements HpPhases.PhaseHandler {
 	public void handleHpPhase(int phaseHpPercent) {
 		switch (phaseHpPercent) {
 			case 100 -> startSkillTask1();
-			case 95 -> startSkillTask2();
+			case 75 -> startSkillTask2();
 		}
 	}
 

@@ -298,7 +298,7 @@ public class EmpyreanCrucibleInstance extends CrucibleInstance {
 			}
 			case 217511, 217512, 217513, 217514 -> {
 				npc.getController().delete();
-				if (instance.getNpcs(217511, 217512, 217513, 217514).allMatch(id -> getNpcs(id).isEmpty())) {
+				if (instance.getNpcs(217511, 217512, 217513, 217514).isEmpty()) {
 					setStage(StageType.START_STAGE_3_ROUND_2, 2000);
 					sp(217515, 336.32092f, 345.0251f, 96.090935f, (byte) 0, 6000); // S3_ElementalEarth_2nd_55_Ae
 					sp(217516, 347.16144f, 361.89084f, 96.09093f, (byte) 0, 6000); // S3_ElementalFire_2nd_55_Ae
@@ -346,7 +346,7 @@ public class EmpyreanCrucibleInstance extends CrucibleInstance {
 			}
 			case 217527, 217528 -> {
 				npc.getController().delete();
-				if (instance.getNpcs(217527, 217528).allMatch(id -> getNpcs(id).isEmpty())) {
+				if (instance.getNpcs(217527, 217528).isEmpty()) {
 					setStage(StageType.START_BONUS_STAGE_3, 7000);
 					sp(217744, 342.45215f, 349.339f, 96.09096f, (byte) 0, 7000); // S3_Elemeltal_CTRL
 					ThreadPoolManager.getInstance().schedule(this::startBonusStage3, 39000);
@@ -356,7 +356,7 @@ public class EmpyreanCrucibleInstance extends CrucibleInstance {
 				npc.getController().delete();
 				switch (stageType) {
 					case START_STAGE_4_ROUND_1 -> {
-						if (instance.getNpcs(217557, 217559, 217562).allMatch(id -> getNpcs(id).isEmpty())) {
+						if (instance.getNpcs(217557, 217559, 217562).isEmpty()) {
 							sp(217558, 330.27792f, 339.2779f, 96.09093f, (byte) 6); // S5_Lizard_As_55_Ae
 							sp(217558, 328.08972f, 346.3553f, 96.090904f, (byte) 1); // S5_Lizard_As_55_Ae
 						}
@@ -420,7 +420,7 @@ public class EmpyreanCrucibleInstance extends CrucibleInstance {
 			}
 			case 217651, 217652, 217653 -> {
 				npc.getController().delete();
-				if (isDoneStage4 && instance.getNpcs(217651, 217652, 217653).allMatch(id -> getNpcs(id).isEmpty())) {
+				if (isDoneStage4 && instance.getNpcs(217651, 217652, 217653).isEmpty()) {
 					setStage(StageType.PASS_GROUP_STAGE_4, 0);
 					sp(217749, 340.59f, 349.32166f, 96.09096f, (byte) 0, 6000); // S4_Draky_CTRL
 					setStage(StageType.START_BONUS_STAGE_4, 6000);

@@ -28,10 +28,22 @@ public class PriestPreceptorAI extends AggressiveNoLootNpcAI implements HpPhases
 			helpers = new int[] { 282369, 282370, 282371 }; // Traufnir, Sigyn, Sif
 	}
 
-	@Override
 	protected void handleSpawned() {
 		super.handleSpawned();
-		ThreadPoolManager.getInstance().schedule(() -> getOwner().queueSkill(19612, 46), 1000);
+		ThreadPoolManager.getInstance().schedule(() -> SkillEngine.getInstance().getSkill(getOwner(), 19612, 15, getOwner()).useNoAnimationSkill(), 1000);
+	}
+
+	@Override
+	protected void handleDied() {
+		despawnHelpers();
+		super.handleDied();
+	}
+
+	@Override
+	protected void handleBackHome() {
+		despawnHelpers();
+		super.handleBackHome();
+		hpPhases.reset();
 	}
 
 	@Override
@@ -43,7 +55,7 @@ public class PriestPreceptorAI extends AggressiveNoLootNpcAI implements HpPhases
 	@Override
 	public void handleHpPhase(int phaseHpPercent) {
 		switch (phaseHpPercent) {
-			case 75 -> getOwner().queueSkill(19611, 46, -1, NpcSkillTargetAttribute.RANDOM);
+			case 75 -> getOwner().queueSkill(19611, 46, -1, NpcSkillTargetAttribute.RANDOM); // Word of Destruction II
 			case 25 -> startTask();
 		}
 	}
@@ -60,19 +72,6 @@ public class PriestPreceptorAI extends AggressiveNoLootNpcAI implements HpPhases
 
 	private void applySoulSickness(Npc npc) {
 		ThreadPoolManager.getInstance().schedule(() -> SkillEngine.getInstance().getSkill(npc, 19594, 4, npc).useNoAnimationSkill(), 1000);
-	}
-
-	@Override
-	protected void handleDied() {
-		despawnHelpers();
-		super.handleDied();
-	}
-
-	@Override
-	protected void handleBackHome() {
-		despawnHelpers();
-		super.handleDied();
-		hpPhases.reset();
 	}
 
 	private void despawnHelpers() {
